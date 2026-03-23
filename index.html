@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Golden Tour | סוכנות נסיעות</title>
+<meta name="description" content="Golden Tour – סוכנות הנסיעות שלך לחופשה מושלמת. דילים, יעדים, ומלונות ברחבי העולם.">
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<style>
+:root{--gold:#C9A84C;--gold-light:#e8c96a;--gold-dark:#a07830;--black:#0a0a0a;--dark:#111;--dark2:#181818;--dark3:#222;--text:#eee;--text2:#bbb;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;direction:rtl;overflow-x:hidden;}
+a{color:var(--gold);text-decoration:none;}
+img{max-width:100%;}
+
+/* ===== NAVBAR ===== */
+#navbar{position:fixed;top:0;width:100%;z-index:1000;background:rgba(10,10,10,0.95);backdrop-filter:blur(10px);border-bottom:1px solid rgba(201,168,76,0.3);padding:0 2rem;}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:70px;max-width:1400px;margin:0 auto;}
+.logo{display:flex;align-items:center;gap:10px;font-size:1.5rem;font-weight:700;color:var(--gold);}
+.logo img{height:45px;object-fit:contain;}
+.nav-links{display:flex;gap:1.5rem;list-style:none;}
+.nav-links a{color:var(--text2);font-size:.95rem;transition:.3s;padding:5px 0;border-bottom:2px solid transparent;}
+.nav-links a:hover{color:var(--gold);border-bottom-color:var(--gold);}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:5px;}
+.hamburger span{width:25px;height:2px;background:var(--gold);transition:.3s;}
+@media(max-width:900px){.nav-links{display:none;flex-direction:column;position:absolute;top:70px;right:0;width:100%;background:var(--dark);padding:1rem 2rem;gap:.5rem;}
+.nav-links.open{display:flex;}.hamburger{display:flex;}}
+
+/* ===== HERO SLIDER ===== */
+#hero{position:relative;height:100vh;overflow:hidden;margin-top:70px;}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity 1s;}
+.slide.active{opacity:1;}
+.slide img{width:100%;height:100%;object-fit:cover;}
+.slide-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8) 0%,rgba(0,0,0,.3) 60%,transparent 100%);}
+.slide-text{position:absolute;bottom:12%;right:8%;text-align:right;}
+.slide-text h1{font-size:clamp(2rem,5vw,4rem);color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.8);}
+.slide-text p{font-size:1.2rem;color:var(--gold);margin-top:.5rem;}
+.slider-nav{position:absolute;bottom:5%;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.slider-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer;transition:.3s;}
+.slider-dot.active{background:var(--gold);transform:scale(1.3);}
+.slider-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(201,168,76,.3);border:1px solid var(--gold);color:var(--gold);width:50px;height:50px;border-radius:50%;font-size:1.5rem;cursor:pointer;transition:.3s;display:flex;align-items:center;justify-content:center;}
+.slider-arrow:hover{background:var(--gold);color:#000;}
+.slider-prev{right:2%;}
+.slider-next{left:2%;}
+
+/* ===== MARQUEE ===== */
+.marquee-strip{background:var(--gold);padding:.6rem 0;overflow:hidden;}
+.marquee-inner{display:flex;animation:marquee 20s linear infinite;white-space:nowrap;}
+.marquee-inner span{color:#000;font-weight:600;font-size:.9rem;padding:0 2rem;}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ===== SECTIONS ===== */
+section{padding:5rem 2rem;}
+.section-title{text-align:center;margin-bottom:3rem;}
+.section-title h2{font-size:2.2rem;color:var(--gold);margin-bottom:.5rem;}
+.section-title p{color:var(--text2);font-size:1rem;}
+.section-title::after{content:'';display:block;width:60px;height:3px;background:var(--gold);margin:1rem auto 0;}
+
+/* ===== STATS ===== */
+#stats{background:var(--dark2);padding:3rem 2rem;}
+.stats-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:2rem;max-width:1200px;margin:0 auto;}
+.stat-card{text-align:center;padding:1.5rem 2rem;border:1px solid rgba(201,168,76,.3);border-radius:12px;min-width:180px;background:var(--dark3);}
+.stat-num{font-size:2.5rem;font-weight:700;color:var(--gold);}
+.stat-label{color:var(--text2);margin-top:.3rem;font-size:.9rem;}
+
+/* ===== DESTINATIONS ===== */
+#destinations{background:var(--black);}
+.filter-tabs{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin-bottom:2.5rem;}
+.filter-btn{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:.5rem 1.4rem;border-radius:25px;cursor:pointer;font-size:.9rem;transition:.3s;}
+.filter-btn.active,.filter-btn:hover{background:var(--gold);color:#000;}
+.dest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;max-width:1400px;margin:0 auto;}
+.dest-card{border-radius:14px;overflow:hidden;background:var(--dark2);cursor:pointer;transition:.3s;border:1px solid rgba(201,168,76,.1);}
+.dest-card:hover{transform:translateY(-6px);border-color:var(--gold);box-shadow:0 10px 30px rgba(201,168,76,.2);}
+.dest-img{height:200px;overflow:hidden;}
+.dest-img img{width:100%;height:100%;object-fit:cover;transition:.5s;}
+.dest-card:hover .dest-img img{transform:scale(1.08);}
+.dest-info{padding:1rem;}
+.dest-info h3{color:var(--gold);margin-bottom:.3rem;}
+.dest-info p{color:var(--text2);font-size:.85rem;}
+.dest-tag{display:inline-block;background:rgba(201,168,76,.15);color:var(--gold);font-size:.75rem;padding:.2rem .7rem;border-radius:20px;margin-top:.5rem;}
+
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--dark2);border-radius:18px;max-width:780px;width:100%;max-height:90vh;overflow-y:auto;border:1px solid rgba(201,168,76,.3);}
+.modal-img{width:100%;height:260px;object-fit:cover;border-radius:18px 18px 0 0;}
+.modal-body{padding:1.8rem;}
+.modal-body h2{color:var(--gold);font-size:1.6rem;margin-bottom:1rem;}
+.modal-desc{color:var(--text2);line-height:1.8;margin-bottom:1.2rem;}
+.modal-section{margin-bottom:1.2rem;}
+.modal-section h4{color:var(--gold);margin-bottom:.6rem;font-size:1rem;}
+.place-item{background:var(--dark3);border-radius:8px;padding:.8rem;margin-bottom:.6rem;}
+.place-item strong{color:#fff;display:block;margin-bottom:.3rem;}
+.place-item span{color:var(--text2);font-size:.85rem;}
+.modal-tip{background:rgba(201,168,76,.1);border-right:3px solid var(--gold);padding:1rem;border-radius:0 8px 8px 0;color:var(--text2);font-size:.9rem;margin-bottom:1.2rem;}
+.modal-close{position:absolute;top:1rem;left:1rem;background:rgba(201,168,76,.2);border:none;color:var(--gold);width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.modal-box{position:relative;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000;border:none;padding:.8rem 2rem;border-radius:30px;font-weight:700;cursor:pointer;font-size:.95rem;transition:.3s;}
+.btn-gold:hover{transform:scale(1.04);box-shadow:0 5px 20px rgba(201,168,76,.4);}
+.btn-outline{background:transparent;border:2px solid var(--gold);color:var(--gold);padding:.7rem 1.8rem;border-radius:30px;font-weight:600;cursor:pointer;font-size:.9rem;transition:.3s;margin-right:.8rem;}
+.btn-outline:hover{background:var(--gold);color:#000;}
+
+/* ===== DEALS ===== */
+#deals{background:var(--dark2);}
+.deals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem;max-width:1400px;margin:0 auto;}
+.deal-card{background:var(--dark3);border-radius:14px;overflow:hidden;cursor:pointer;transition:.3s;border:1px solid rgba(201,168,76,.15);}
+.deal-card:hover{transform:translateY(-5px);border-color:var(--gold);}
+.deal-img{height:190px;overflow:hidden;position:relative;}
+.deal-img img{width:100%;height:100%;object-fit:cover;transition:.5s;}
+.deal-card:hover .deal-img img{transform:scale(1.07);}
+.deal-badge{position:absolute;top:12px;right:12px;background:var(--gold);color:#000;font-weight:700;font-size:.8rem;padding:.3rem .8rem;border-radius:20px;}
+.deal-info{padding:1.2rem;}
+.deal-info h3{color:#fff;margin-bottom:.4rem;}
+.deal-info .deal-price{font-size:1.4rem;color:var(--gold);font-weight:700;margin:.5rem 0;}
+.deal-info .deal-old{text-decoration:line-through;color:#888;font-size:.9rem;}
+.deal-info p{color:var(--text2);font-size:.85rem;}
+
+/* ===== HOTELS ===== */
+#hotels{background:var(--black);}
+.hotel-tabs{display:flex;gap:1rem;justify-content:center;margin-bottom:2rem;flex-wrap:wrap;}
+.hotel-tab{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:.6rem 1.6rem;border-radius:25px;cursor:pointer;font-size:.9rem;transition:.3s;}
+.hotel-tab.active,.hotel-tab:hover{background:var(--gold);color:#000;}
+.hotel-frame{max-width:1200px;margin:0 auto;border-radius:14px;overflow:hidden;border:1px solid rgba(201,168,76,.3);}
+.hotel-frame iframe{width:100%;height:600px;border:none;}
+
+/* ===== INSTAGRAM ===== */
+#instagram{background:var(--dark2);}
+.instagram-inner{max-width:1200px;margin:0 auto;}
+
+/* ===== CONTACT ===== */
+#contact{background:var(--black);}
+.contact-wrap{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:3rem;}
+@media(max-width:768px){.contact-wrap{grid-template-columns:1fr;}}
+.contact-info h3{color:var(--gold);font-size:1.3rem;margin-bottom:1.5rem;}
+.info-block{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.4rem;}
+.info-icon{font-size:1.4rem;margin-top:.2rem;}
+.info-text strong{color:#fff;display:block;margin-bottom:.2rem;}
+.info-text span{color:var(--text2);font-size:.9rem;}
+.contact-form h3{color:var(--gold);font-size:1.3rem;margin-bottom:1.5rem;}
+.form-group{margin-bottom:1.1rem;}
+.form-group input,.form-group textarea,.form-group select{width:100%;background:var(--dark2);border:1px solid rgba(201,168,76,.3);color:var(--text);padding:.8rem 1rem;border-radius:8px;font-size:.95rem;font-family:inherit;direction:rtl;outline:none;transition:.3s;}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--gold);}
+.form-group textarea{height:120px;resize:vertical;}
+
+/* ===== FOOTER ===== */
+footer{background:var(--dark2);padding:3rem 2rem 1.5rem;border-top:1px solid rgba(201,168,76,.2);}
+.footer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2rem;max-width:1200px;margin:0 auto 2rem;}
+.footer-col h4{color:var(--gold);margin-bottom:1rem;}
+.footer-col p,.footer-col a{color:var(--text2);font-size:.9rem;line-height:1.8;}
+.footer-col a:hover{color:var(--gold);}
+.footer-bottom{text-align:center;color:#555;font-size:.8rem;border-top:1px solid rgba(201,168,76,.1);padding-top:1.5rem;}
+.social-links{display:flex;gap:1rem;margin-top:.8rem;}
+.social-links a{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:var(--gold);width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:.3s;}
+.social-links a:hover{background:var(--gold);color:#000;}
+
+/* ===== FLOATING BUTTONS ===== */
+.float-wa{position:fixed;bottom:100px;left:20px;z-index:999;background:#25D366;color:#fff;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;box-shadow:0 4px 20px rgba(37,211,102,.4);transition:.3s;}
+.float-wa:hover{transform:scale(1.1);}
+
+/* ===== CHATBOT ===== */
+.chatbot-wrap{position:fixed;bottom:20px;right:20px;z-index:998;}
+.chat-toggle{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000;width:56px;height:56px;border-radius:50%;border:none;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 20px rgba(201,168,76,.5);transition:.3s;}
+.chat-toggle:hover{transform:scale(1.1);}
+.chat-window{position:absolute;bottom:70px;right:0;width:350px;max-height:500px;background:var(--dark2);border-radius:16px;border:1px solid rgba(201,168,76,.3);display:none;flex-direction:column;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.6);}
+.chat-window.open{display:flex;}
+.chat-header{background:linear-gradient(135deg,var(--gold),var(--gold-dark));padding:1rem;color:#000;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+.chat-header span{font-size:.75rem;font-weight:400;opacity:.8;}
+.chat-messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.8rem;min-height:200px;}
+.chat-msg{max-width:85%;padding:.7rem 1rem;border-radius:12px;font-size:.88rem;line-height:1.6;}
+.chat-msg.bot{background:var(--dark3);color:var(--text);align-self:flex-start;border-radius:12px 12px 12px 4px;}
+.chat-msg.user{background:var(--gold);color:#000;align-self:flex-end;border-radius:12px 12px 4px 12px;}
+.chat-input-row{display:flex;border-top:1px solid rgba(201,168,76,.2);padding:.7rem;}
+.chat-input-row input{flex:1;background:var(--dark3);border:1px solid rgba(201,168,76,.2);color:var(--text);padding:.6rem .9rem;border-radius:20px;font-size:.88rem;font-family:inherit;direction:rtl;outline:none;}
+.chat-input-row button{background:var(--gold);border:none;color:#000;width:36px;height:36px;border-radius:50%;margin-right:.5rem;cursor:pointer;font-size:1rem;}
+.chat-typing{font-size:.8rem;color:var(--text2);padding:.3rem 1rem;}
+
+/* ===== ACCESSIBILITY ===== */
+.acc-btn{position:fixed;bottom:20px;left:90px;z-index:999;background:#1a73e8;color:#fff;width:50px;height:50px;border-radius:50%;border:none;font-size:1.3rem;cursor:pointer;box-shadow:0 4px 15px rgba(26,115,232,.4);}
+.acc-panel{position:fixed;bottom:80px;left:20px;width:280px;background:var(--dark2);border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:1.2rem;z-index:999;display:none;}
+.acc-panel.open{display:block;}
+.acc-panel h4{color:var(--gold);margin-bottom:1rem;}
+.acc-option{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;color:var(--text2);font-size:.9rem;}
+.acc-option button{background:rgba(201,168,76,.2);border:1px solid var(--gold);color:var(--gold);padding:.3rem .8rem;border-radius:20px;cursor:pointer;font-size:.8rem;}
+
+/* ===== BLOG PREVIEW ===== */
+#blog-section{background:var(--dark2);}
+.blog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;max-width:1400px;margin:0 auto;}
+.blog-card{background:var(--dark3);border-radius:14px;overflow:hidden;cursor:pointer;transition:.3s;border:1px solid rgba(201,168,76,.1);}
+.blog-card:hover{transform:translateY(-5px);border-color:var(--gold);}
+.blog-card img{width:100%;height:180px;object-fit:cover;}
+.blog-card-body{padding:1.1rem;}
+.blog-card-body h3{color:#fff;font-size:1rem;margin-bottom:.4rem;}
+.blog-card-body p{color:var(--text2);font-size:.83rem;line-height:1.6;}
+.blog-tag{color:var(--gold);font-size:.78rem;margin-bottom:.4rem;display:block;}
+
+/* Article modal */
+.article-modal{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:3000;overflow-y:auto;display:none;}
+.article-modal.open{display:block;}
+.article-inner{max-width:800px;margin:2rem auto;background:var(--dark2);border-radius:18px;overflow:hidden;border:1px solid rgba(201,168,76,.3);}
+.article-inner img{width:100%;height:300px;object-fit:cover;}
+.article-content{padding:2rem;}
+.article-content h1{color:var(--gold);font-size:1.8rem;margin-bottom:1rem;}
+.article-content h3{color:var(--gold-light);margin:1.5rem 0 .6rem;}
+.article-content p{color:var(--text2);line-height:1.9;margin-bottom:1rem;}
+.article-close{position:fixed;top:20px;left:20px;background:var(--gold);border:none;color:#000;width:42px;height:42px;border-radius:50%;font-size:1.3rem;cursor:pointer;z-index:3001;}
+.article-cta{background:rgba(201,168,76,.1);border:1px solid var(--gold);border-radius:14px;padding:1.5rem;margin-top:2rem;text-align:center;}
+.article-cta h3{color:var(--gold);margin-bottom:.8rem;}
+.article-cta p{color:var(--text2);margin-bottom:1.2rem;}
+
+/* Policy modal */
+.policy-modal{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:4000;overflow-y:auto;display:none;padding:1rem;}
+.policy-modal.open{display:block;}
+.policy-inner{max-width:700px;margin:2rem auto;background:var(--dark2);border-radius:16px;padding:2rem;border:1px solid rgba(201,168,76,.3);}
+.policy-inner h2{color:var(--gold);margin-bottom:1rem;}
+.policy-inner h3{color:var(--gold-light);margin:1.2rem 0 .5rem;}
+.policy-inner p,.policy-inner li{color:var(--text2);line-height:1.9;font-size:.92rem;}
+.policy-inner ul{padding-right:1.2rem;margin-bottom:.8rem;}
+.policy-close{background:var(--gold);border:none;color:#000;padding:.6rem 2rem;border-radius:20px;cursor:pointer;font-weight:700;margin-top:1rem;}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <div class="logo">
+      <img src="logo.png" alt="Golden Tour" onerror="this.style.display='none'">
+      <span>Golden Tour</span>
+    </div>
+    <div class="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#hero" onclick="closeMenu()">ראשי</a></li>
+      <li><a href="#destinations" onclick="closeMenu()">יעדים</a></li>
+      <li><a href="#deals" onclick="closeMenu()">דילים</a></li>
+      <li><a href="blog.html">בלוג</a></li>
+      <li><a href="#hotels" onclick="closeMenu()">מלונות</a></li>
+      <li><a href="#instagram" onclick="closeMenu()">עקבו אחרינו</a></li>
+      <li><a href="about.html">אודות</a></li>
+      <li><a href="#contact" onclick="closeMenu()">צור קשר</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO SLIDER -->
+<section id="hero">
+  <div id="sliderContainer"></div>
+  <div class="slide-overlay"></div>
+  <button class="slider-arrow slider-prev" onclick="changeSlide(-1)">&#8250;</button>
+  <button class="slider-arrow slider-next" onclick="changeSlide(1)">&#8249;</button>
+  <div class="slider-nav" id="sliderDots"></div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-strip">
+  <div class="marquee-inner" id="marqueeInner"></div>
+</div>
+
+<!-- STATS -->
+<section id="stats">
+  <div class="stats-grid" id="statsGrid"></div>
+</section>
+
+<!-- DESTINATIONS -->
+<section id="destinations">
+  <div class="section-title">
+    <h2>יעדים מומלצים</h2>
+    <p>בחרו את החופשה הבאה שלכם מתוך 21 יעדים מדהימים</p>
+  </div>
+  <div class="filter-tabs" id="destFilters"></div>
+  <div class="dest-grid" id="destGrid"></div>
+</section>
+
+<!-- DEALS -->
+<section id="deals">
+  <div class="section-title">
+    <h2>🔥 דילים חמים</h2>
+    <p>מבצעים מיוחדים לזמן מוגבל – אל תפספסו!</p>
+  </div>
+  <div class="filter-tabs" id="dealFilters"></div>
+  <div class="deals-grid" id="dealsGrid"></div>
+</section>
+
+<!-- HOTELS -->
+<section id="hotels">
+  <div class="section-title">
+    <h2>מצאו את המלון המושלם</h2>
+    <p>אלפי מלונות ברחבי העולם במחירים הטובים ביותר</p>
+  </div>
+  <div class="hotel-tabs">
+    <button class="hotel-tab active" onclick="document.getElementById('hotelFrame').scrollIntoView({behavior:'smooth'})">חפשו מלון</button>
+    <button class="hotel-tab" onclick="window.open('https://www.travelor.com/he?fid=79812','_blank')">פתחו בחלון חדש</button>
+  </div>
+  <div class="hotel-frame" id="hotelFrame">
+    <iframe src="https://www.travelor.com/he?fid=79812" title="חיפוש מלונות" loading="lazy"></iframe>
+  </div>
+</section>
+
+<!-- BLOG PREVIEW -->
+<section id="blog-section">
+  <div class="section-title">
+    <h2>המדריך לנוסע</h2>
+    <p>כתבות מעמיקות שיעזרו לכם לתכנן את החופשה המושלמת</p>
+  </div>
+  <div class="blog-grid" id="blogGrid"></div>
+  <div style="text-align:center;margin-top:2.5rem;">
+    <a href="blog.html" class="btn-gold" style="display:inline-block;padding:.9rem 2.5rem;">לכל הכתבות ←</a>
+  </div>
+</section>
+
+<!-- INSTAGRAM -->
+<section id="instagram">
+  <div class="section-title">
+    <h2>עקבו אחרינו באינסטגרם</h2>
+    <p>השראה לחופשה הבאה שלכם</p>
+  </div>
+  <div class="instagram-inner">
+    <behold-widget feed-id="c5utIJ4CqMs327UFnEXY"></behold-widget>
+    <script src="https://w.behold.so/widget.js" type="module"></script>
+    <div style="text-align:center;margin-top:1.5rem;">
+      <a href="https://www.facebook.com/GoldenTour.Edi/?locale=he_IL" target="_blank" class="btn-outline">
+        עקבו גם בפייסבוק 👍
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-title">
+    <h2>צרו קשר</h2>
+    <p>נשמח לעזור לכם לתכנן את החופשה המושלמת</p>
+  </div>
+  <div class="contact-wrap">
+    <div class="contact-info">
+      <h3>פרטי התקשרות</h3>
+      <div class="info-block">
+        <div class="info-icon">🕐</div>
+        <div class="info-text">
+          <strong>ימי ושעות פעילות</strong>
+          <span>ראשון – חמישי: 09:00 – 21:00</span>
+          <span style="display:block">שישי: 09:00 – 14:30</span>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-icon">📍</div>
+        <div class="info-text">
+          <strong>כתובתנו</strong>
+          <span>האלוף דוד 6, ראשון לציון</span>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-icon">📞</div>
+        <div class="info-text">
+          <strong>אדי | 054-2386216</strong>
+          <span>זמינים לשיחה ולוואטסאפ</span>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-icon">✉️</div>
+        <div class="info-text">
+          <strong>כתובת מייל</strong>
+          <span>mt-edid@ortarad.ort.org.il</span>
+        </div>
+      </div>
+      <div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
+        <a href="https://wa.me/+972542386216" target="_blank" class="btn-gold" style="display:inline-flex;align-items:center;gap:.5rem;">
+          💬 וואטסאפ
+        </a>
+        <a href="https://www.facebook.com/GoldenTour.Edi/?locale=he_IL" target="_blank" class="btn-outline">
+          Facebook
+        </a>
+      </div>
+    </div>
+    <div class="contact-form">
+      <h3>שלחו לנו הודעה</h3>
+      <div class="form-group"><input type="text" id="cName" placeholder="שמכם המלא" /></div>
+      <div class="form-group"><input type="tel" id="cPhone" placeholder="מספר טלפון" /></div>
+      <div class="form-group">
+        <select id="cDest">
+          <option value="">בחרו יעד מועדף</option>
+          <option>דובאי</option><option>מונטנגרו</option><option>תאילנד</option>
+          <option>ברצלונה</option><option>פריז</option><option>יפן</option>
+          <option>בודפשט</option><option>בוקרשט</option><option>באקו</option>
+          <option>פראג</option><option>יעד אחר</option>
+        </select>
+      </div>
+      <div class="form-group"><textarea id="cMsg" placeholder="הודעתכם..."></textarea></div>
+      <button class="btn-gold" onclick="sendContactForm()">שלחו הודעה ✉️</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>Golden Tour</h4>
+      <p>סוכנות נסיעות מקצועית בראשון לציון. אנחנו כאן כדי להפוך את חלום החופשה שלכם למציאות.</p>
+      <div class="social-links">
+        <a href="https://www.facebook.com/GoldenTour.Edi/?locale=he_IL" target="_blank">f</a>
+        <a href="https://wa.me/+972542386216" target="_blank">w</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>ניווט מהיר</h4>
+      <a href="#destinations">יעדים</a><br>
+      <a href="#deals">דילים חמים</a><br>
+      <a href="#hotels">מלונות</a><br>
+      <a href="blog.html">בלוג</a><br>
+      <a href="about.html">אודות</a><br>
+      <a href="#contact">צור קשר</a>
+    </div>
+    <div class="footer-col">
+      <h4>מידע משפטי</h4>
+      <a href="#" onclick="openPolicy('privacy')">מדיניות פרטיות</a><br>
+      <a href="#" onclick="openPolicy('terms')">תנאי שימוש</a><br>
+      <a href="#" onclick="openPolicy('accessibility')">הצהרת נגישות</a><br>
+      <a href="#" onclick="openPolicy('cancel')">מדיניות ביטולים</a>
+    </div>
+    <div class="footer-col">
+      <h4>שעות פעילות</h4>
+      <p>א–ה: 09:00–21:00</p>
+      <p>שישי: 09:00–14:30</p>
+      <p style="margin-top:.8rem">📞 054-2386216</p>
+      <p>📍 האלוף דוד 6, ראשון לציון</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Golden Tour. כל הזכויות שמורות. | <a href="#" onclick="openPolicy('privacy')">פרטיות</a> | <a href="#" onclick="openPolicy('terms')">תנאים</a></p>
+  </div>
+</footer>
+
+<!-- FLOATING WHATSAPP -->
+<a href="https://wa.me/+972542386216" target="_blank" class="float-wa" title="וואטסאפ">💬</a>
+
+<!-- CHATBOT -->
+<div class="chatbot-wrap">
+  <button class="chat-toggle" onclick="toggleChat()" title="צ'אט עם AI">🤖</button>
+  <div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+      <div>
+        <div>Golden Tour AI</div>
+        <span>עוזר נסיעות חכם 24/7</span>
+      </div>
+      <button onclick="toggleChat()" style="background:none;border:none;color:#000;font-size:1.2rem;cursor:pointer;">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg bot">שלום! אני העוזר החכם של Golden Tour 🌟 אשמח לעזור לך לתכנן את החופשה המושלמת. מה מעניין אותך?</div>
+    </div>
+    <div class="chat-typing" id="chatTyping" style="display:none">מקליד...</div>
+    <div class="chat-input-row">
+      <button onclick="sendChat()">➤</button>
+      <input type="text" id="chatInput" placeholder="שאל אותי על נסיעות..." onkeydown="if(event.key==='Enter')sendChat()">
+    </div>
+  </div>
+</div>
+
+<!-- ACCESSIBILITY -->
+<button class="acc-btn" onclick="toggleAcc()" title="נגישות">♿</button>
+<div class="acc-panel" id="accPanel">
+  <h4>⚙️ הגדרות נגישות</h4>
+  <div class="acc-option"><span>הגדלת טקסט</span><button onclick="changeFontSize(1.1)">A+</button></div>
+  <div class="acc-option"><span>הקטנת טקסט</span><button onclick="changeFontSize(0.9)">A-</button></div>
+  <div class="acc-option"><span>ניגודיות גבוהה</span><button onclick="toggleContrast()">🔲</button></div>
+  <div class="acc-option"><span>קישורים מודגשים</span><button onclick="highlightLinks()">🔗</button></div>
+  <div class="acc-option"><span>איפוס</span><button onclick="resetAcc()">↺</button></div>
+</div>
+
+<!-- DESTINATION MODAL -->
+<div class="modal-overlay" id="destModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeDestModal()">✕</button>
+    <img id="modalImg" src="" alt="" class="modal-img">
+    <div class="modal-body">
+      <h2 id="modalTitle"></h2>
+      <p class="modal-desc" id="modalDesc"></p>
+      <div class="modal-section" id="modalPlaces"></div>
+      <div class="modal-section">
+        <h4>🍽️ מה כדאי לאכול</h4>
+        <p id="modalFood" style="color:var(--text2);line-height:1.8;"></p>
+      </div>
+      <div class="modal-tip" id="modalTip"></div>
+      <button class="btn-gold" id="modalBlogBtn" onclick="">קראו כתבה מלאה →</button>
+      <button class="btn-outline" onclick="document.getElementById('destModal').classList.remove('open');document.getElementById('contact').scrollIntoView({behavior:'smooth'})">צרו קשר להזמנה</button>
+    </div>
+  </div>
+</div>
+
+<!-- DEAL MODAL -->
+<div class="modal-overlay" id="dealModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('dealModal').classList.remove('open')">✕</button>
+    <img id="dealModalImg" src="" alt="" class="modal-img">
+    <div class="modal-body">
+      <h2 id="dealModalTitle"></h2>
+      <p id="dealModalDesc" style="color:var(--text2);line-height:1.8;margin-bottom:1rem;"></p>
+      <div id="dealModalDetails"></div>
+      <div class="modal-tip" id="dealModalNote"></div>
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;">
+        <span id="dealModalPrice" style="font-size:1.8rem;color:var(--gold);font-weight:700;"></span>
+        <span id="dealModalOld" style="text-decoration:line-through;color:#888;"></span>
+      </div>
+      <button class="btn-gold" onclick="document.getElementById('dealModal').classList.remove('open');document.getElementById('contact').scrollIntoView({behavior:'smooth'})">הזמינו עכשיו ←</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARTICLE MODAL -->
+<div class="article-modal" id="articleModal">
+  <button class="article-close" onclick="document.getElementById('articleModal').classList.remove('open')">✕</button>
+  <div class="article-inner">
+    <img id="articleImg" src="" alt="">
+    <div class="article-content" id="articleContent"></div>
+  </div>
+</div>
+
+<!-- POLICY MODALS -->
+<div class="policy-modal" id="policyModal">
+  <div class="policy-inner" id="policyContent"></div>
+</div>
+
+<script>
+// ============= DATA =============
+var heroSlides = [
+  {city:"דובאי",img:"https://images.pexels.com/photos/1470502/pexels-photo-1470502.jpeg",sub:"מגדלים, מדבר ויוקרה ללא גבולות"},
+  {city:"מונטנגרו",img:"https://images.pexels.com/photos/3601425/pexels-photo-3601425.jpeg",sub:"טבע פראי ועיירות קסומות"},
+  {city:"תאילנד",img:"https://images.pexels.com/photos/1031659/pexels-photo-1031659.jpeg",sub:"מקדשים, חופים ואוכל מדהים"},
+  {city:"ברצלונה",img:"https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg",sub:"ארכיטקטורה, תרבות וים תיכון"},
+  {city:"פריז",img:"https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg",sub:"עיר האהבה, אמנות ואופנה"},
+  {city:"יפן",img:"https://images.pexels.com/photos/590478/pexels-photo-590478.jpeg",sub:"מסורת עתיקה ומודרניות עתידית"},
+  {city:"בודפשט",img:"https://images.pexels.com/photos/1758533/pexels-photo-1758533.jpeg",sub:"הפנינה של אירופה המרכזית"},
+  {city:"בוקרשט",img:"https://images.pexels.com/photos/3757144/pexels-photo-3757144.jpeg",sub:"מסתורין, היסטוריה ואדריכלות"},
+  {city:"באקו",img:"https://images.pexels.com/photos/4388167/pexels-photo-4388167.jpeg",sub:"עיר עתיקה בלב אסיה"},
+  {city:"פראג",img:"https://images.pexels.com/photos/2346216/pexels-photo-2346216.jpeg",sub:"עיר הזהב שמחכה לכם"}
+];
+
+var destinations = [
+  {id:1,name:"דובאי",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/1470502/pexels-photo-1470502.jpeg",
+   desc:"דובאי היא עיר העתיד – שם שמים גורדי ורקיע פוגשים מדבר זהוב ומסחר עולמי. חוויה של פאר, ספורט אתגרי, קניות אינסופיות ואוכל בינלאומי.",
+   places:[{n:"בורג' ח'ליפה",t:"המבנה הגבוה בעולם – 828 מ'. הנוף ממנו הוא פשוט עוצר נשימה."},{n:"מדינה ג'וממרה",t:"שוק עתיק יומין בעיצוב ערבי אותנטי עם תעלות ומסעדות."},{n:"Safari המדבר",t:"רכיבה על חולות, גמלים, ארוחת ערב ועיין הכוכבים."},{n:"Palm Jumeirah",t:"האי המלאכותי המפורסם בעולם עם בתי מלון יוקרתיים."},{n:"מוזיאון העתיד",t:"מבנה אייקוני עם תצוגות טכנולוגיה של 2071."}],
+   food:"חובה לנסות Al Harees (בשר ועם), Shawarma רחוב אמיתי, ואם אתם בסופה – ארוחת ים של מאכלי ים טריים.",
+   tip:"💡 הגיעו בנובמבר–מרץ – הטמפרטורות נעימות בין 20–28 מעלות. בקיץ החום עשוי להגיע ל-50°."
+  },
+  {id:2,name:"מונטנגרו",cat:"אירופה",img:"https://images.pexels.com/photos/3601425/pexels-photo-3601425.jpeg",
+   desc:"מונטנגרו היא אחת היעדים הנסתרים של הבלקן – עם הרים מושלגים, ימת קוטור הכחולה ועיירות ימי ביניים שנשמרו בצורה מושלמת.",
+   places:[{n:"קוטור העתיקה",t:"חומות ימי ביניים, כנסיות, ומרפסות עם נוף לפיורד."},{n:"דוּרמיטור",t:"פארק לאומי עם שלג, קניונים וספורט אתגרי."},{n:"בוּדבה",t:"עיר חוף עתיקה עם מוזיקה חיה ומסעדות ים."},{n:"ימת סקוטאר",t:"הימה הגדולה בבלקן – שלווה, דייג, ואווירה אחרת לחלוטין."},{n:"פֶרסט",t:"ריבייה מרהיבה עם חופים צלולים."}],
+   food:"חיי אוכל מקומי: כבש על הגריל, גבינת קשקבל, ויין המקומי Vranac.",
+   tip:"💡 ביקור אידיאלי: מאי–ספטמבר. ביולי–אוגוסט זה עמוס, אבל האנרגיה מדהימה."
+  },
+  {id:3,name:"תאילנד",cat:"מזרח",img:"https://images.pexels.com/photos/1031659/pexels-photo-1031659.jpeg",
+   desc:"תאילנד מציעה שילוב ייחודי של מקדשים מוזהבים, חופים טרופיים כחולים, שוקי לילה עמוסים ואנשים חייכניים שיגרמו לכם להרגיש בבית.",
+   places:[{n:"קוה סמואי",t:"חוף עם מים תכולים, האמאק בין דקלים ואווירת גן עדן."},{n:"מקדש ואט פו",t:"חמישה מאות שנה של היסטוריה בפגודות מוזהבות ומרהיבות."},{n:"צ'ינג מאי",t:"עיר הפילים, הטרקים ביערות ומסורת ייחודית של צפון תאילנד."},{n:"שוק לילה בנגקוק",t:"Chatuchak – 15,000 דוכנים, אוכל רחוב ואופנה מקומית."},{n:"קרבי",t:"צוקי סיד מרהיבים, קיאקים ואיי פי פי."}],
+   food:"Pad Thai, Tom Yum, Mango Sticky Rice, ומאכלי ים טריים ישירות מהרשת.",
+   tip:"💡 עונת החורף (נובמבר–פברואר) היא העונה הטובה. הימנעו ממאי–אוקטובר (מונסון)."
+  },
+  {id:4,name:"ברצלונה",cat:"אירופה",img:"https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg",
+   desc:"ברצלונה היא עיר שכובשת את הלב – עם ארכיטקטורה של גאודי, חופים יפים, חיי לילה אגדיים ואוכל קטלני שלא ישכח לכם.",
+   places:[{n:"הסגרדה פמיליה",t:"כנסייתו המפורסמת של גאודי – מעשה אמנות בטון אחד."},{n:"פארק גוול",t:"גן פנטסטי עם פסאי צבעוני ונוף פנורמי לעיר."},{n:"לה ראמבלה",t:"השדרה החיה של ברצלונה – מוזיקה, אוכל, אנשים ואמנות רחוב."},{n:"שכונת גוטיק",t:"בניינים בני מאות שנים, מסתרים ורחובות אבן צרים."},{n:"חוף ברצלונטה",t:"חוף עירוני תוסס עם ספורט ים, ברים ושקיעות."}],
+   food:"פאייה אמיתית, פן קון טומאטה, טאפאס מגוונות וסנגריה.",
+   tip:"💡 הגיעו במאי–יוני. בקיץ עמוס מאוד ויקר. רכשו כרטיסים לסגרדה פמיליה מראש!"
+  },
+  {id:5,name:"פריז",cat:"אירופה",img:"https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg",
+   desc:"פריז היא עיר שאי אפשר להגדיר במילים – מגדל אייפל בשעת שקיעה, קפה בוקר בצד הסן, ויין בגן עם הפריזאים הטיפוסיים.",
+   places:[{n:"מגדל אייפל",t:"חובה – אבל עלו אליו בשקיעה או בלילה לחוויה שלמה."},{n:"המוזיאון הלובר",t:"40,000 יצירות מונה ליזה ועוד – תכננו לפחות חצי יום."},{n:"מונמארטר",t:"שכונת האמנים, הקברה הלבנה ואווירת שנות ה-20."},{n:"שדרות השאנזה ליזה",t:"קניות, קפה ואווירה צרפתית אותנטית."},{n:"חוף האוברניין",t:"ספינות, ונציה על הסן – שייט רומנטי בלב העיר."}],
+   food:"קרואסון בוקר, קישה לוריין, קרפ נוטלה, וגבינות צרפתיות.",
+   tip:"💡 הימנעו מאוגוסט – רבים עוזבים את העיר. מרץ–יוני מושלם."
+  },
+  {id:6,name:"יפן",cat:"מזרח",img:"https://images.pexels.com/photos/590478/pexels-photo-590478.jpeg",
+   desc:"יפן היא עולם אחר לגמרי – שבו הכול מדויק, נקי ומסודר, ובה בעת מלא בפלאים: מקדשים שקטים לצד ניאונים ועתיד בנגינה של שאמיסן.",
+   places:[{n:"טוקיו",t:"מטרופוליס עם שכונות שונות לחלוטין – שיבויה, אסאקוסה, היארוקו."},{n:"קיוטו",t:"המקדשים הזהובים, הגייישות ועונת הדובדבן."},{n:"הר פוג'י",t:"עלייה או צפייה – שניהם חוויה שלא נשכחת."},{n:"אוסקה",t:"מטבח, חיי לילה, דוטונבורי וסמוראים."},{n:"נארה",t:"צביים קדושים חופשיים ברחובות, לצד מקדשי עץ."}],
+   food:"ראמן, סושי, טמפורה, טאקויאקי, ומטצ'ה בכל צורה שתדמיינו.",
+   tip:"💡 מרץ–אפריל הוא עונת הדובדבן (Sakura). הזמינו מוקדם – הכול מלא."
+  },
+  {id:7,name:"בודפשט",cat:"אירופה",img:"https://images.pexels.com/photos/1758533/pexels-photo-1758533.jpeg",
+   desc:"בודפשט חלוקה לשני עולמות: בודה ההיסטורית שמעל ההר ופשט הצעירה שמרקידה לילה שלם. ביניהן גשרים מפוארים על הדנובה המרשים.",
+   places:[{n:"מרחצאות סצ'ניה",t:"מרחץ תרמי פעיל מ-1913 – חוויה בוהמיינית שאין כמותה."},{n:"מגדל הפרלמנט",t:"אחד היפים בעולם – נוף מהדנובה הוא פשוט פסטיבל לעיניים."},{n:"שכונת היהודים",t:"רוהברק, ברים ברמה, גרפיטי ותרבות עשירה."},{n:"מצודת בודה",t:"ארמון, חומות ונוף מדהים על כל העיר."},{n:"שוק הגדול",t:"פאפריקה, סלמי, מלאכת יד ואוכל מקומי."}],
+   food:"גולש הונגרי (Goulash), Langos, ובוגאצה – עוגת גבינה הונגרית.",
+   tip:"💡 אפריל–יוני ואוקטובר הם מצוינים. בדצמבר יש שוק חג המולד קסום."
+  },
+  {id:8,name:"בוקרשט",cat:"אירופה",img:"https://images.pexels.com/photos/3757144/pexels-photo-3757144.jpeg",
+   desc:"בוקרשט – הפריז של המזרח. עיר מלאה בסתירות: ארמונות עצומים לצד גרפיטי מהפכני, ועיצוב Art Deco לצד קפה מודרניסטי.",
+   places:[{n:"ארמון הפרלמנט",t:"גדול מהפנטגון – 1,100 חדרים. ממש מדהים."},{n:"שכונת הרהוב",t:"ברים, גרפיטי, חנויות ואמנות רחוב פעילה 24/7."},{n:"ארמון שפרין",t:"ארמון חורף היסטורי עם גן מרהיב."},{n:"Old Town",t:"לב העיר ההיסטורי עם מסעדות ואווירת אגדה."},{n:"מוזיאון האיכרים",t:"גן פסל ענק עם כ-300 בתי עץ אותנטיים מכפרי רומניה."}],
+   food:"Sarmale (גלילי כרוב), Mici (מתאבנים בשר), ו-Cozonac לקינוח.",
+   tip:"💡 אפריל–ספטמבר הוא זמן מושלם. גם ינואר מיוחד – שלג ובתי קפה חמים."
+  },
+  {id:9,name:"באקו",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/4388167/pexels-photo-4388167.jpeg",
+   desc:"באקו היא פנינה שרק מתחילה לקבל את תשומת הלב שהיא ראויה לה – עיר עתיקה של 5,000 שנה שמחובקת במגדלי כסף וחזית ים תכלת.",
+   places:[{n:"עיר העתיקה (Icherisheher)",t:"חומות, מסגדים, ומבוכי רחובות אבן בן 2,000 שנה."},{n:"מגדל הבתולה",t:"סמל העיר – נוף פנורמי עוצר נשימה."},{n:"היידר אלייב סנטר",t:"ארכיטקטורה עוצרת נשימה של זאהה חדיד."},{n:"Baku Boulevrd",t:"טיילת הים הארוכה עם גלגל ענק ואווירה ים תיכונית."},{n:"כפר לד'ז'",t:"כפר הוסטל עתיק בהרים – שטיחים, אומנות, נוף."}],
+   food:"Plov (אורז) המפורסם, Dushbara, Qutab (מאפה עם גבינה/ירק).",
+   tip:"💡 אפריל–יוני ואוקטובר–נובמבר מושלמים. כביש הארמנייה בהרים – יציאה חובה."
+  },
+  {id:10,name:"פראג",cat:"אירופה",img:"https://images.pexels.com/photos/2346216/pexels-photo-2346216.jpeg",
+   desc:"פראג היא עיר שמרגישה כאילו נבנתה מסיפור אגדה – גשרים קסומים, מגדלים, תאורת גז ברחובות אבן, ויין מקומי שעושה הכל יפה עוד יותר.",
+   places:[{n:"גשר קארל",t:"גשר עתיק מהמאה ה-14 עם 30 פסלי קדושים ונוף לעיר."},{n:"מגדל הפרלמנט של פראג",t:"השעון האסטרונומי – כל שעה מופע אחד."},{n:"שכונת מאלה סטרנה",t:"שכונה בית היסטורית עם מדרגות, חתולים וגנים."},{n:"מצודת פראג",t:"המקדש, הארמון, והנוף המפורסם על העיר."},{n:"Vinohrady",t:"שכונת בוהמה מודרנית עם בתי קפה יצירתיים."}],
+   food:"Svíčková (בשר בשמנת), Trdelník (עוגת רחוב מסורתית), ובירה צ'כית שנחשבת הטובה בעולם.",
+   tip:"💡 דצמבר מושלם – שוק חג המולד הוא מהיפים בעולם. מרץ–מאי פחות עמוס."
+  },
+  {id:11,name:"רומא",cat:"אירופה",img:"https://images.pexels.com/photos/532263/pexels-photo-532263.jpeg",
+   desc:"רומא היא ספר היסטוריה פתוח – כל אבן, פסל ומזרקה מספרים 3,000 שנה.",
+   places:[{n:"הקולוסאום",t:"מדהים גם אחרי 2,000 שנה – האמפי הגדול ביותר שנבנה."},{n:"מזרקת הטרווי",t:"הטקס הכי רומנטי: זרוק מטבע וחזור."},{n:"הפנתיאון",t:"כיפה אדריכלית מהמאה ה-2 שעמדה בבדיקת הזמן."},{n:"ותיקן",t:"חצי יום לכנסיית פטרוס + מוזיאונים + קפלת סיסטין."},{n:"ויה אפיה",t:"הכביש הרומי העתיק עם קברים, בתי עץ ורוח שונה."}],
+   food:"Cacio e Pepe, Carbonara (אמיתית!), Supplì ואיסקרם ג'לאטו ישירות מגביע.",
+   tip:"💡 אפריל–מאי וספטמבר–אוקטובר. הימנעו מאוגוסט – ריק ורותח."
+  },
+  {id:12,name:"אמסטרדם",cat:"אירופה",img:"https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg",
+   desc:"אמסטרדם היא עיר שחוגגת חיים – תעלות, אופניים, מוזיאונים עולמיים ותרבות ליברלית שמזמינה כל אחד.",
+   places:[{n:"מוזיאון van Gogh",t:"90,000 יצירות ואגרות בנסיבות חיים מרגשות."},{n:"Rijksmuseum",t:"רמברנדט, ורמיר ואמנות הולנדית זהב."},{n:"Jordaan",t:"שכונה עם גלריות, שוקי אנטיקות ואווירה שקטה."},{n:"Anne Frank Huis",t:"ביתה של אנה פרנק – חוויה מרגשת ומחייבת."},{n:"Vondelpark",t:"פארק ענק עם מוזיקה, פיקניק ואנשים מכל העולם."}],
+   food:"Stroopwafels, Haring (דג מלוח), פטטס פריט עם מאיו, וזינגר בולוו.",
+   tip:"💡 אפריל פריחת הצבעונים – קיוקנהוף. ספטמבר פחות עמוס ויפה לא פחות."
+  },
+  {id:13,name:"ניו יורק",cat:"מערב",img:"https://images.pexels.com/photos/凌晨_york_city/pexels-photo-凌晨.jpeg",
+   desc:"ניו יורק היא עיר שאף פעם לא ישנה – סנטרל פארק, ברודווי, ספיידי המפורסמות וחיים שלמים בכל בלוק.",
+   places:[{n:"סנטרל פארק",t:"341 הקטרים של שקט בלב מנהטן – ריצה, שכיבה, נוף."},{n:"מוזיאון MET",t:"5 מיליון יצירות ממצרים ועד מודרניזם."},{n:"Times Square",t:"כאוס מלהיב – ניאונים, שלטים, ונרגיל של ניו יורק."},{n:"Dumbo Brooklyn",t:"נוף גשרי מנהטן עם שוקי אמנות."},{n:"High Line",t:"גן ירוק על מסילת ברזל עתיקה – גאונות עירונית."}],
+   food:"Brooklyn Pizza, פסטרמי בקאץ, Bagel with Lox, וגלידת Big Gay Ice Cream.",
+   tip:"💡 ספטמבר–נובמבר מושלם. חג המולד בNYC קסום אבל עמוס. הימנעו מינואר–פברואר."
+  },
+  {id:14,name:"מיאמי",cat:"מערב",img:"https://images.pexels.com/photos/凌晨_miami/pexels-photo.jpeg",
+   desc:"מיאמי היא קוקטייל של שמש, מוזיקה לטינית, גלים גדולים ואמנות Street שמצביעים על עיר שיודעת לחגוג.",
+   places:[{n:"South Beach",t:"חוף אייקוני עם שכבות ססגוניות של Art Deco ורחצה."},{n:"Wynwood Walls",t:"גלריה פתוחה ענקית עם גרפיטי ממיטב האמנים בעולם."},{n:"Little Havana",t:"קהוה קובנית, דומינו ברחוב, וסיגר בידיים."},{n:"Everglades",t:"ספארי בגומחת המים הגדולה של פלורידה."},{n:"Vizcaya Museum",t:"ארמון אירופי על שפת הים עם גנים מרהיבים."}],
+   food:"Cubanos (סנדוויץ' קובני), Ceviche, Stone Crab ו-Key Lime Pie.",
+   tip:"💡 נובמבר–אפריל הוא עונת הטובה. בקיץ חם ולח מאוד, ויש הוריקנים."
+  },
+  {id:15,name:"מרוקו",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/4388164/pexels-photo-4388164.jpeg",
+   desc:"מרוקו היא מסע חושים מלא – שווקים צבעוניים, מדבר ענק, ריח תבלינים שנדבק לבגדים וחיוך מארח שנשאר בלב.",
+   places:[{n:"מדינת פֶס",t:"המדינה ישנת העולם ביותר – ריחות, צבעים ואנשים מכל כיוון."},{n:"מסכת מראקש",t:"Djemaa el-Fna – קסמים, מוזיקה, נחשים וסיפורים."},{n:"מדבר השחרה",t:"שינה באוהל, גמלים ושמיים מלאים בכוכבים."},{n:"חופי אסילה",t:"עיר חוף לבנה עם ציורי קיר ואמנים."},{n:"גן מג'ורל (מארקש)",t:"גן צבעוני בכחול ברברי."}],
+   food:"Tagine (תבשיל מרוקני), Couscous, Harira (מרק), ו-Pastilla מתוקה-מלוחה.",
+   tip:"💡 מרץ–מאי ואוקטובר–נובמבר הם המושלמים. אוגוסט במדבר הוא מסוכן."
+  },
+  {id:16,name:"הודו",cat:"מזרח",img:"https://images.pexels.com/photos/1007426/pexels-photo-1007426.jpeg",
+   desc:"הודו היא יבשת שלמה בפני עצמה – מוצפת בצבע, ריח, קדושה, אוכל, מוזיקה וניגודים שמשאירים אותך עם מוח מופתע.",
+   places:[{n:"הטאג' מאהל",t:"אחד משבעת פלאי העולם – ביקרו בזריחה לחוויה אמיתית."},{n:"ג'ייפור",t:"העיר הוורודה – ארמון האוויר, מלכותיות ומסתורין."},{n:"ואראנאסי",t:"עיר הקדושה על הגנגס – עשן, תפילות ומחזור החיים."},{n:"קרלה",t:"חופים קסומים, אגמי backwater ועיסוי איורוודי."},{n:"גואה",t:"חופים, מסיבות, היפים ופורטוגזית בעיצוב."}],
+   food:"Butter Chicken, Biryani, Samosas, Chai עם התבלינים הנכונים.",
+   tip:"💡 נובמבר–פברואר הוא הזמן הטוב ביותר. קיץ = מונסון – ניתן אך עמוס."
+  },
+  {id:17,name:"ייסלנד",cat:"אירופה",img:"https://images.pexels.com/photos/凌晨_iceland/pexels-photo.jpeg",
+   desc:"איסלנד היא כוכב אחר – גייזרים, שמש חצות, זוהר צפוני, ובוחן שאלות גדולות על הטבע.",
+   places:[{n:"Blue Lagoon",t:"ספא גיאותרמלי בשדה לבה – צבע תכלת עם קיטור לבן."},{n:"עמק Þingvellir",t:"לוחות טקטוניים מתפרדים בפניך – שני יבשות."},{n:"גייזר Geysir",t:"פיצוץ מים רותחים כל כמה דקות – עוצר נשימה."},{n:"Skogafoss",t:"מפל ענק שאפשר ללכת מאחוריו."},{n:"Jokulsarlon",t:"לגון קרחונים עם קרחות תכולות צפות."}],
+   food:"Skyr (יוגורט), דג מיובש, כבש איסלנדי ומרק שמן.",
+   tip:"💡 ספטמבר–מרץ לזוהר צפוני. יוני–אוגוסט לשמש חצות. שניהם קסומים."
+  },
+  {id:18,name:"גרנדה (ספרד)",cat:"אירופה",img:"https://images.pexels.com/photos/1388035/pexels-photo-1388035.jpeg",
+   desc:"גרנדה היא נסיכה של ספרד – מצודת אלהמברה הממוקדת מעל העיר, טפאס ב-1 אירו ושמיים כחולים.",
+   places:[{n:"מצודת אלהמברה",t:"נאצרי פאלאס – הזמינו 3 חודשים מראש, ממש שווה."},{n:"שכונת אלבייסין",t:"בתים לבנים על הגבעה עם נוף לאלהמברה."},{n:"Sacromonte",t:"שכונת המערות של הצוענים – פלמנקו אמיתי."},{n:"שוק הפאיסנריה",t:"שוק תוסס עם תבלינים, בדים ומזכרות."},{n:"שיירה נבדה",t:"סקי 50 דקות מהעיר ואחרי זה טפאס ים."}],
+   food:"Tapas בחינם עם כל שתייה, Tortilla Española, Jamón Ibérico.",
+   tip:"💡 מרץ–מאי ואוקטובר. אוגוסט הוא חם ועמוס. גרנדה היא עיר אוניברסיטאית – אנרגיה צעירה."
+  },
+  {id:19,name:"קייפ טאון",cat:"מערב",img:"https://images.pexels.com/photos/1434580/pexels-photo-1434580.jpeg",
+   desc:"קייפ טאון היא אחת הערים היפות בעולם – הר השולחן, כרמי ענבים, חופים ממזרח ומערב ואנשים מחמימי לב.",
+   places:[{n:"הר השולחן",t:"עלו ברגל או בטלפריק – ענן לבן כמו שמיכה עוטף."},{n:"Boulders Beach",t:"חוף עם מושבת פינגווינים חופשיים – ממש בידיים!"},{n:"V&A Waterfront",t:"נמל ישן עם שווקים, מסעדות ונוף לאוניות."},{n:"Cape Point",t:"קצה העולם הישן – אוקיאנוס משני כיוונים."},{n:"Cape Winelands",t:"Stellenbosch + Franschhoek – יין, גבינות, נוף."}],
+   food:"Braai (ברביקיו), Bobotie (תבשיל מסורתי), Koeksister וAtchar.",
+   tip:"💡 נובמבר–מרץ (קיץ) הוא המושלם. הימנעו מיוני–אוגוסט."
+  },
+  {id:20,name:"קוסטה ריקה",cat:"מערב",img:"https://images.pexels.com/photos/6328924/pexels-photo-6328924.jpeg",
+   desc:"קוסטה ריקה היא גן עדן ירוק – 25% ממנה הוא פארקים לאומיים, עם זיפ-ליין בין עצים, מפלים ותגליות.",
+   places:[{n:"עמק ארנל",t:"הר גועש פעיל עם מעיינות תרמיים ביער."},{n:"קוץ' טורטוגרו",t:"הטלת ביצים של צבי ים – חוויה שאין שנייה לה."},{n:"Monte Verde",t:"יערות ענן, גשרים תלויים ועופות צבעוניים."},{n:"Santa Teresa",t:"גלישת גלים, יוגה ואנשים שהחליטו לחיות אחרת."},{n:"Corcovado",t:"אחד הפארקים הביולוגיים העשירים בעולם."}],
+   food:"Gallo Pinto (אורז שעועית מקריאולית), Casado (ארוחת בסיס מקומית).",
+   tip:"💡 דצמבר–אפריל הוא עונה יבשה. עונת הגשמים (מאי–נובמבר) ירוקה יותר."
+  },
+  {id:21,name:"יוון",cat:"אירופה",img:"https://images.pexels.com/photos/1285625/pexels-photo-1285625.jpeg",
+   desc:"יוון היא עריסת הציוויליזציה המערבית – עם אקרופוליס מלמעלה, שקיעות בסנטוריני ואוזו בתחתית.",
+   places:[{n:"סנטוריני",t:"כנסיות כחול-לבן, שקיעות אגדיות ויין Assyrtiko."},{n:"מיקונוס",t:"רחובות לבנים, מסיבות ים ומנדרקה הנמל."},{n:"האקרופוליס",t:"הפרתנון – 2,500 שנה ועדיין עומד. תבינו מה בנינו."},{n:"קורפו",t:"ורנציה יוונית – ארמונות, ים ובריאות."},{n:"רודוס",t:"עיר ביניים שלמה בתוך חומות עתיקות."}],
+   food:"Moussaka, Souvlaki, Spanakopita, Loukoumades ופטה על הכל.",
+   tip:"💡 מאי–יוני וספטמבר–אוקטובר. ביולי–אוגוסט עמוס מאוד ויקר."
+  }
+];
+
+var deals = [
+  {id:1,name:"דובאי – יוקרה בצנצנת",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/1470502/pexels-photo-1470502.jpeg",badge:"🔥 חם",price:"₪3,490",old:"₪5,200",desc:"7 לילות בדובאי כולל טיסה, מלון 5 כוכבים, סיור במדבר וכניסה לברג' ח'ליפה.",details:"<p><b>✈️</b> טיסה ישירה<br><b>🏨</b> מלון 5 כוכבים <br><b>🗓️</b> 7 לילות<br><b>🍽️</b> ארוחת בוקר כלולה<br><b>🚌</b> העברות מלון–שדה תעופה</p>",note:"⏰ מחיר מוגבל – עד סוף החודש!"},
+  {id:2,name:"פריז – חופשה רומנטית",cat:"אירופה",img:"https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg",badge:"♥ זוגות",price:"₪2,890",old:"₪4,100",desc:"5 לילות בפריז כולל טיסה, מלון בוטיק ליד האייפל, שייט על הסן וסיור מודרך.",details:"<p><b>✈️</b> טיסה ישירה<br><b>🏨</b> מלון בוטיק 4★<br><b>🗓️</b> 5 לילות<br><b>🥐</b> ארוחת בוקר צרפתית<br><b>⛵</b> שייט על הסן</p>",note:"💡 מומלץ למזג אוויר: אפריל–יוני"},
+  {id:3,name:"תאילנד – חופשה טרופית",cat:"מזרח",img:"https://images.pexels.com/photos/1031659/pexels-photo-1031659.jpeg",badge:"🌴 טרופי",price:"₪4,290",old:"₪6,500",desc:"10 לילות תאילנד: בנגקוק 3 לילות + קוה סמואי 7 לילות. טיסות + מלונות + העברות.",details:"<p><b>✈️</b> טיסה + טיסה פנימית<br><b>🏨</b> בנגקוק 4★ + Samui 5★ Pool Villa<br><b>🗓️</b> 10 לילות<br><b>🍜</b> ארוחת בוקר<br><b>🚤</b> העברות כלולות</p>",note:"✅ ניתן להתאים תאריכים"},
+  {id:4,name:"ברצלונה – ספרדית בשמש",cat:"אירופה",img:"https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg",badge:"🌞 קיץ",price:"₪2,490",old:"₪3,800",desc:"5 לילות ברצלונה כולל טיסה, מלון 4 כוכבים מרכזי, כניסה לסגרדה פמיליה ולפארק גואל.",details:"<p><b>✈️</b> טיסה ישירה<br><b>🏨</b> מלון 4★ מרכז העיר<br><b>🗓️</b> 5 לילות<br><b>🎫</b> כניסה לאתרים<br><b>🚶</b> סיור מודרך</p>",note:"🌊 קרוב לחוף ולעיר העתיקה"},
+  {id:5,name:"יפן – מסע ייחודי",cat:"מזרח",img:"https://images.pexels.com/photos/590478/pexels-photo-590478.jpeg",badge:"🌸 פריחה",price:"₪6,990",old:"₪9,500",desc:"12 לילות יפן: טוקיו, קיוטו, אוסקה ונארה. הכל כלול: טיסות, רכבות JR Pass, מלונות.",details:"<p><b>✈️</b> טיסה ישירה לטוקיו<br><b>🚅</b> JR Pass 14 יום<br><b>🏨</b> מלונות 4★ בכל עיר<br><b>🗓️</b> 12 לילות<br><b>🍣</b> ארוחת בוקר יפנית</p>",note:"🌸 מרץ–אפריל – עונת הדובדבן"},
+  {id:6,name:"בודפשט – אירופה מרכזית",cat:"אירופה",img:"https://images.pexels.com/photos/1758533/pexels-photo-1758533.jpeg",badge:"💎 ערך",price:"₪1,990",old:"₪2,900",desc:"4 לילות בבודפשט כולל טיסה, מלון 4 כוכבים וכניסה למרחצאות הסצ'ניה המפורסמים.",details:"<p><b>✈️</b> טיסה<br><b>🏨</b> מלון 4★ מרכזי<br><b>🗓️</b> 4 לילות<br><b>🛁</b> כניסה למרחצאות<br><b>🍷</b> בטעם ויין הונגרי</p>",note:"💰 אחד היעדים הזולים באירופה"},
+  {id:7,name:"מרוקו – חופשת שחרית",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/4388164/pexels-photo-4388164.jpeg",badge:"🐪 מדבר",price:"₪3,290",old:"₪4,700",desc:"8 לילות מרוקו: מראקש, פֶס ולילה במדבר השחרה. טיסות + מלון + לינה בכחילה.",details:"<p><b>✈️</b> טיסה<br><b>🏨</b> מלון ריאד מסורתי<br><b>🌙</b> לינה בכחילה במדבר<br><b>🐪</b> רכיבה על גמלים<br><b>🗓️</b> 8 לילות</p>",note:"✨ חוויה שתזכרו לכל החיים"},
+  {id:8,name:"יוון – אסקפיזם ים",cat:"אירופה",img:"https://images.pexels.com/photos/1285625/pexels-photo-1285625.jpeg",badge:"🏝️ אי",price:"₪2,790",old:"₪4,100",desc:"6 לילות יוון: 3 בסנטוריני + 3 במיקונוס. טיסות, ספינות, מלון עם נוף לים.",details:"<p><b>✈️</b> טיסה לאתונה + פנימיות<br><b>🚢</b> מעבורת בין האיים<br><b>🏨</b> מלון עם נוף לאגאי<br><b>🗓️</b> 6 לילות<br><b>🌅</b> שקיעות אגדיות</p>",note:"📸 החופשה שתשנה את פיד האינסטגרם שלך"},
+  {id:9,name:"ניו יורק – עיר שלא ישנה",cat:"מערב",img:"https://images.pexels.com/photos/凌晨_ny/pexels-photo.jpeg",badge:"🗽 אייקון",price:"₪5,490",old:"₪7,800",desc:"7 לילות ניו יורק: מנהטן, ברוקלין, צ'לסי, ובלנד. טיסה + מלון 4★ + City Pass.",details:"<p><b>✈️</b> טיסה ישירה ל-JFK<br><b>🏨</b> מלון 4★ מנהטן<br><b>🗓️</b> 7 לילות<br><b>🎫</b> New York City Pass<br><b>🚇</b> כרטיס תחבורה שבועי</p>",note:"🎭 ברודווי לא כלול – מומלץ להוסיף!"},
+  {id:10,name:"קייפ טאון – אפריקה אחרת",cat:"מערב",img:"https://images.pexels.com/photos/1434580/pexels-photo-1434580.jpeg",badge:"🏔️ הר",price:"₪4,890",old:"₪6,900",desc:"9 לילות קייפ טאון + Safari חד-יומי. טיסה, מלון עם נוף להר השולחן, סיורי יין.",details:"<p><b>✈️</b> טיסה<br><b>🏨</b> מלון עם נוף להר השולחן<br><b>🦁</b> Safari יום שלם<br><b>🍷</b> סיור כרמי יין<br><b>🗓️</b> 9 לילות</p>",note:"🌍 חוויית אפריקה האמיתית"}
+];
+
+var blogPosts = [
+  {id:1,title:"ברצלונה – כל מה שצריך לדעת לפני שמגיעים",cat:"אירופה",img:"https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg"},
+  {id:2,title:"פריז – המדריך המלא לסיטי טריפ מושלם",cat:"אירופה",img:"https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg"},
+  {id:3,title:"בודפשט – היהלום הנסתר של אירופה",cat:"אירופה",img:"https://images.pexels.com/photos/1758533/pexels-photo-1758533.jpeg"},
+  {id:4,title:"פראג – 3 ימים בעיר הקסמים",cat:"אירופה",img:"https://images.pexels.com/photos/2346216/pexels-photo-2346216.jpeg"},
+  {id:5,title:"בוקרשט – הפריז של המזרח",cat:"אירופה",img:"https://images.pexels.com/photos/3757144/pexels-photo-3757144.jpeg"},
+  {id:6,title:"מונטנגרו – טבע פרוע בלב הבלקן",cat:"אירופה",img:"https://images.pexels.com/photos/3601425/pexels-photo-3601425.jpeg"},
+  {id:7,title:"רומא – 5 ימים בנצח שהפך לעיר",cat:"אירופה",img:"https://images.pexels.com/photos/532263/pexels-photo-532263.jpeg"},
+  {id:8,title:"אמסטרדם – תעלות, אופניים ויצירה",cat:"אירופה",img:"https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg"},
+  {id:9,title:"תאילנד – החופשה הטרופית שתשנה אתכם",cat:"מזרח",img:"https://images.pexels.com/photos/1031659/pexels-photo-1031659.jpeg"},
+  {id:10,title:"יפן – מסע בין עתיד ועבר",cat:"מזרח",img:"https://images.pexels.com/photos/590478/pexels-photo-590478.jpeg"},
+  {id:11,title:"ניו יורק – שבוע בעיר שלא ישנה",cat:"מערב",img:"https://images.pexels.com/photos/凌晨/pexels-photo.jpeg"},
+  {id:12,title:"מיאמי – שמש, גלים ואמנות",cat:"מערב",img:"https://images.pexels.com/photos/凌晨2/pexels-photo.jpeg"},
+  {id:13,title:"באקו – האלמוגים של אסיה",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/4388167/pexels-photo-4388167.jpeg"},
+  {id:14,title:"דובאי – המדריך המושלם ל-7 ימים",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/1470502/pexels-photo-1470502.jpeg"},
+  {id:15,title:"מרוקו – מסע של חושים",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/4388164/pexels-photo-4388164.jpeg"},
+  {id:16,title:"הודו – מסע שמשנה השקפות",cat:"מזרח",img:"https://images.pexels.com/photos/1007426/pexels-photo-1007426.jpeg"}
+];
+
+var statsData = [
+  {num:"🌍",label:"מגוון יעדים בכל העולם",suffix:""},
+  {num:"24/7",label:"זמינות מלאה לכל שאלה",suffix:""},
+  {num:"⭐",label:"שירות אישי ומסור",suffix:""},
+  {num:"✈️",label:"תכנון חופשות מותאם אישית",suffix:""},
+  {num:"💰",label:"המחירים הטובים ביותר",suffix:""},
+  {num:"🏆",label:"ניסיון ומקצועיות",suffix:""}
+];
+
+var marqueeItems = ["✈️ טיסות זולות","🌍 יעדים ברחבי העולם","🏨 מלונות ב-5 כוכבים","🔥 דילים חמים","💬 שירות 24/7","🌴 חופשה טרופית","🏔️ הרפתקה מרגשת","🌹 חופשה רומנטית","🎒 טיולי תרמילאים","🛳️ קרוזים יוקרתיים"];
+
+// ============= INIT =============
+var currentSlide = 0;
+var slideInterval;
+
+function initSlider() {
+  var container = document.getElementById('sliderContainer');
+  var dots = document.getElementById('sliderDots');
+  container.innerHTML = '';
+  dots.innerHTML = '';
+  for (var i = 0; i < heroSlides.length; i++) {
+    var s = heroSlides[i];
+    var div = document.createElement('div');
+    div.className = 'slide' + (i === 0 ? ' active' : '');
+    div.innerHTML = '<img src="' + s.img + '" alt="' + s.city + '" loading="lazy"><div class="slide-overlay"></div><div class="slide-text"><h1>' + s.city + '</h1><p>' + s.sub + '</p></div>';
+    container.appendChild(div);
+    var dot = document.createElement('div');
+    dot.className = 'slider-dot' + (i === 0 ? ' active' : '');
+    dot.onclick = (function(idx){return function(){goToSlide(idx);};})(i);
+    dots.appendChild(dot);
+  }
+  slideInterval = setInterval(function(){changeSlide(1);}, 5000);
+}
+
+function goToSlide(n) {
+  var slides = document.querySelectorAll('.slide');
+  var dots = document.querySelectorAll('.slider-dot');
+  slides[currentSlide].classList.remove('active');
+  dots[currentSlide].classList.remove('active');
+  currentSlide = (n + heroSlides.length) % heroSlides.length;
+  slides[currentSlide].classList.add('active');
+  dots[currentSlide].classList.add('active');
+}
+
+function changeSlide(dir) {
+  goToSlide(currentSlide + dir);
+}
+
+function initMarquee() {
+  var inner = document.getElementById('marqueeInner');
+  var html = '';
+  for (var i = 0; i < 4; i++) {
+    for (var j = 0; j < marqueeItems.length; j++) {
+      html += '<span>' + marqueeItems[j] + '</span>';
+    }
+  }
+  inner.innerHTML = html;
+}
+
+function initStats() {
+  var grid = document.getElementById('statsGrid');
+  var html = '';
+  for (var i = 0; i < statsData.length; i++) {
+    var s = statsData[i];
+    html += '<div class="stat-card"><div class="stat-num">' + s.num + '</div><div class="stat-label">' + s.label + '</div></div>';
+  }
+  grid.innerHTML = html;
+}
+
+function initDestinations() {
+  var filterDiv = document.getElementById('destFilters');
+  var cats = ['הכל','אירופה','מזרח','מערב','מזרח תיכון'];
+  var html = '';
+  for (var i = 0; i < cats.length; i++) {
+    html += '<button class="filter-btn' + (i===0?' active':'') + '" onclick="filterDest(\'' + cats[i] + '\',this)">' + cats[i] + '</button>';
+  }
+  filterDiv.innerHTML = html;
+  renderDest('הכל');
+}
+
+function renderDest(cat) {
+  var grid = document.getElementById('destGrid');
+  var html = '';
+  for (var i = 0; i < destinations.length; i++) {
+    var d = destinations[i];
+    if (cat === 'הכל' || d.cat === cat) {
+      html += '<div class="dest-card" onclick="openDestModal(' + d.id + ')">';
+      html += '<div class="dest-img"><img src="' + d.img + '" alt="' + d.name + '" loading="lazy"></div>';
+      html += '<div class="dest-info"><span class="dest-tag">' + d.cat + '</span><h3>' + d.name + '</h3><p>' + d.desc.substring(0,80) + '...</p></div></div>';
+    }
+  }
+  grid.innerHTML = html;
+}
+
+function filterDest(cat, btn) {
+  var btns = document.querySelectorAll('#destFilters .filter-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  btn.classList.add('active');
+  renderDest(cat);
+}
+
+function openDestModal(id) {
+  var d = null;
+  for (var i = 0; i < destinations.length; i++) {
+    if (destinations[i].id === id) { d = destinations[i]; break; }
+  }
+  if (!d) return;
+  document.getElementById('modalImg').src = d.img;
+  document.getElementById('modalTitle').textContent = d.name;
+  document.getElementById('modalDesc').textContent = d.desc;
+  var placesHtml = '<h4>📍 5 מקומות מומלצים לביקור</h4>';
+  for (var j = 0; j < d.places.length; j++) {
+    placesHtml += '<div class="place-item"><strong>' + d.places[j].n + '</strong><span>' + d.places[j].t + '</span></div>';
+  }
+  document.getElementById('modalPlaces').innerHTML = placesHtml;
+  document.getElementById('modalFood').textContent = d.food;
+  document.getElementById('modalTip').textContent = d.tip;
+  var blogBtn = document.getElementById('modalBlogBtn');
+  blogBtn.onclick = function(){openArticle(id);};
+  document.getElementById('destModal').classList.add('open');
+}
+
+function closeDestModal() {
+  document.getElementById('destModal').classList.remove('open');
+}
+
+function openArticle(destId) {
+  var d = null;
+  for (var i = 0; i < destinations.length; i++) {
+    if (destinations[i].id === destId) { d = destinations[i]; break; }
+  }
+  if (!d) return;
+  document.getElementById('destModal').classList.remove('open');
+  document.getElementById('articleImg').src = d.img;
+  var placesHtml = '';
+  for (var j = 0; j < d.places.length; j++) {
+    placesHtml += '<div class="place-item" style="margin-bottom:.8rem"><strong>' + d.places[j].n + '</strong><p style="color:var(--text2);font-size:.9rem;margin-top:.3rem">' + d.places[j].t + '</p></div>';
+  }
+  var content = '<h1>מדריך מלא: ' + d.name + '</h1>';
+  content += '<p style="color:var(--gold);margin-bottom:1.2rem">✍️ Golden Tour | מדריך נסיעות מקצועי</p>';
+  content += '<h3>🌟 על ' + d.name + '</h3><p>' + d.desc + '</p>';
+  content += '<h3>📍 5 מקומות שאסור לפספס</h3>' + placesHtml;
+  content += '<h3>🍽️ מה לאכול</h3><p>' + d.food + '</p>';
+  content += '<h3>💡 טיפ מקצועי</h3><div class="modal-tip">' + d.tip + '</div>';
+  content += '<h3>📋 מידע פרקטי</h3>';
+  content += '<p>🛂 <strong>ויזה:</strong> תלוי בדרכון. ישראלים רבים פטורים ממדינות אירופה ועוד.</p>';
+  content += '<p>💱 <strong>מטבע:</strong> בדקו לפני היציאה – בכל מדינה שונה.</p>';
+  content += '<p>🌡️ <strong>אקלים:</strong> מומלץ לבדוק בהתאם לעונה בה אתם נוסעים.</p>';
+  content += '<p>🏨 <strong>לינה:</strong> טווח מחירים רחב – ממלון בוטיק ועד פנסיון.</p>';
+  content += '<div class="article-cta"><h3>🌍 מוכנים לנסוע ל' + d.name + '?</h3><p>צוות Golden Tour ישמח לבנות לכם חבילת חופשה מותאמת אישית, כולל טיסות, מלון, טיולים ועוד.</p><button class="btn-gold" onclick="document.getElementById(\'articleModal\').classList.remove(\'open\');document.getElementById(\'contact\').scrollIntoView({behavior:\'smooth\'})">📞 צרו קשר להתאמת חופשה ←</button></div>';
+  document.getElementById('articleContent').innerHTML = content;
+  document.getElementById('articleModal').classList.add('open');
+}
+
+function initDeals() {
+  var filterDiv = document.getElementById('dealFilters');
+  var cats = ['הכל','אירופה','מזרח','מערב','מזרח תיכון'];
+  var html = '';
+  for (var i = 0; i < cats.length; i++) {
+    html += '<button class="filter-btn' + (i===0?' active':'') + '" onclick="filterDeals(\'' + cats[i] + '\',this)">' + cats[i] + '</button>';
+  }
+  filterDiv.innerHTML = html;
+  renderDeals('הכל');
+}
+
+function renderDeals(cat) {
+  var grid = document.getElementById('dealsGrid');
+  var html = '';
+  for (var i = 0; i < deals.length; i++) {
+    var d = deals[i];
+    if (cat === 'הכל' || d.cat === cat) {
+      html += '<div class="deal-card" onclick="openDealModal(' + d.id + ')">';
+      html += '<div class="deal-img"><img src="' + d.img + '" alt="' + d.name + '" loading="lazy"><span class="deal-badge">' + d.badge + '</span></div>';
+      html += '<div class="deal-info"><h3>' + d.name + '</h3><p>' + d.desc.substring(0,70) + '...</p>';
+      html += '<div style="display:flex;align-items:center;gap:.7rem;margin-top:.5rem"><span class="deal-price">' + d.price + '</span><span class="deal-old">' + d.old + '</span></div></div></div>';
+    }
+  }
+  grid.innerHTML = html;
+}
+
+function filterDeals(cat, btn) {
+  var btns = document.querySelectorAll('#dealFilters .filter-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  btn.classList.add('active');
+  renderDeals(cat);
+}
+
+function openDealModal(id) {
+  var d = null;
+  for (var i = 0; i < deals.length; i++) {
+    if (deals[i].id === id) { d = deals[i]; break; }
+  }
+  if (!d) return;
+  document.getElementById('dealModalImg').src = d.img;
+  document.getElementById('dealModalTitle').textContent = d.name;
+  document.getElementById('dealModalDesc').textContent = d.desc;
+  document.getElementById('dealModalDetails').innerHTML = d.details;
+  document.getElementById('dealModalNote').textContent = d.note;
+  document.getElementById('dealModalPrice').textContent = d.price;
+  document.getElementById('dealModalOld').textContent = d.old;
+  document.getElementById('dealModal').classList.add('open');
+}
+
+function initBlog() {
+  var grid = document.getElementById('blogGrid');
+  var html = '';
+  var show = blogPosts.slice(0, 8);
+  for (var i = 0; i < show.length; i++) {
+    var b = show[i];
+    html += '<div class="blog-card"><img src="' + b.img + '" alt="' + b.title + '" loading="lazy"><div class="blog-card-body"><span class="blog-tag">' + b.cat + '</span><h3>' + b.title + '</h3><p>מדריך מעמיק שיעזור לכם לתכנן את הביקור המושלם ולהפיק את המקסימום מהחופשה.</p></div></div>';
+  }
+  grid.innerHTML = html;
+}
+
+// ============= CONTACT =============
+function sendContactForm() {
+  var name = document.getElementById('cName').value;
+  var phone = document.getElementById('cPhone').value;
+  var dest = document.getElementById('cDest').value;
+  var msg = document.getElementById('cMsg').value;
+  if (!name || !phone) { alert('נא למלא שם וטלפון'); return; }
+  var subject = encodeURIComponent('פנייה חדשה מ-' + name + ' | ' + dest);
+  var body = encodeURIComponent('שם: ' + name + '\nטלפון: ' + phone + '\nיעד: ' + dest + '\nהודעה: ' + msg);
+  window.location.href = 'mailto:mt-edid@ortarad.ort.org.il?subject=' + subject + '&body=' + body;
+}
+
+// ============= NAVBAR =============
+function toggleMenu() {
+  document.getElementById('navLinks').classList.toggle('open');
+}
+function closeMenu() {
+  document.getElementById('navLinks').classList.remove('open');
+}
+
+// ============= CHAT =============
+var chatOpen = false;
+var chatHistory = [];
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chatWindow').classList.toggle('open', chatOpen);
+}
+
+function sendChat() {
+  var input = document.getElementById('chatInput');
+  var msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  addChatMsg(msg, 'user');
+  chatHistory.push({role:'user',content:msg});
+  document.getElementById('chatTyping').style.display = 'block';
+  callClaude(msg);
+}
+
+function addChatMsg(text, who) {
+  var msgs = document.getElementById('chatMessages');
+  var div = document.createElement('div');
+  div.className = 'chat-msg ' + who;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function callClaude(userMsg) {
+  var messages = chatHistory.slice(-10);
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: 'אתה עוזר נסיעות מקצועי של Golden Tour, סוכנות נסיעות בראשון לציון. ענה תמיד בעברית, בגובה העיניים, עם המלצות מעשיות. אתה מכיר את כל יעדי הסוכנות: דובאי, מונטנגרו, תאילנד, ברצלונה, פריז, יפן, בודפשט, בוקרשט, באקו, פראג, רומא, אמסטרדם, ניו יורק, מיאמי, מרוקו, הודו ועוד. אתה עוזר לתכנן חופשות, נותן טיפים ומפנה לצור קשר: 054-2386216 (אדי) לסגירת עסקה.',
+      messages: messages
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    document.getElementById('chatTyping').style.display = 'none';
+    var reply = (data.content && data.content[0]) ? data.content[0].text : 'מצטער, לא הצלחתי לענות. נסה שוב.';
+    addChatMsg(reply, 'bot');
+    chatHistory.push({role:'assistant',content:reply});
+  })
+  .catch(function(){
+    document.getElementById('chatTyping').style.display = 'none';
+    addChatMsg('שגיאה בחיבור. נסה שוב או פנה אלינו ישירות: 054-2386216', 'bot');
+  });
+}
+
+// ============= ACCESSIBILITY =============
+function toggleAcc() {
+  document.getElementById('accPanel').classList.toggle('open');
+}
+function changeFontSize(factor) {
+  var curr = parseFloat(getComputedStyle(document.body).fontSize);
+  document.body.style.fontSize = (curr * factor) + 'px';
+}
+function toggleContrast() {
+  document.body.style.filter = document.body.style.filter ? '' : 'contrast(1.5)';
+}
+function highlightLinks() {
+  var links = document.querySelectorAll('a');
+  for (var i = 0; i < links.length; i++) {
+    links[i].style.outline = links[i].style.outline ? '' : '2px solid yellow';
+  }
+}
+function resetAcc() {
+  document.body.style.fontSize = '';
+  document.body.style.filter = '';
+  var links = document.querySelectorAll('a');
+  for (var i = 0; i < links.length; i++) links[i].style.outline = '';
+}
+
+// ============= POLICY =============
+var policies = {
+  privacy: '<h2>מדיניות פרטיות</h2><h3>1. מידע שאנו אוספים</h3><p>אנו אוספים מידע שאתם מוסרים לנו ישירות כגון שם, טלפון, כתובת אימייל ויעד מבוקש.</p><h3>2. שימוש במידע</h3><p>המידע משמש אך ורק ליצירת קשר לצורך תכנון נסיעות ושיפור השירות.</p><h3>3. שמירת המידע</h3><p>אנו שומרים על פרטיותכם ולא נעביר מידע לצדדים שלישיים ללא הסכמתכם.</p><h3>4. צור קשר</h3><p>לשאלות: mt-edid@ortarad.ort.org.il</p><button class="policy-close" onclick="document.getElementById(\'policyModal\').classList.remove(\'open\')">סגור</button>',
+  terms: '<h2>תנאי שימוש</h2><h3>1. שימוש באתר</h3><p>השימוש באתר Golden Tour מהווה הסכמה לתנאים אלו.</p><h3>2. מדיניות ביטולים</h3><p>ביטולי הזמנות יטופלו בהתאם לתקנות הגנת הצרכן.</p><h3>3. אחריות</h3><p>Golden Tour אינה אחראית לשינויים שחלו אצל ספקי שירות חיצוניים.</p><h3>4. קניין רוחני</h3><p>כל תוכן האתר שייך ל-Golden Tour ואסור להעתיקו ללא רשות.</p><button class="policy-close" onclick="document.getElementById(\'policyModal\').classList.remove(\'open\')">סגור</button>',
+  accessibility: '<h2>הצהרת נגישות</h2><p>Golden Tour מחויבת לנגישות הדיגיטלית לכלל האוכלוסייה בהתאם לתקן ישראלי 5568.</p><h3>תכונות נגישות באתר</h3><ul><li>כפתור נגישות לשינוי גופן וניגודיות</li><li>תגיות ARIA ותוויות</li><li>ניווט מקלדת מלא</li><li>טקסטים חלופיים לתמונות</li></ul><h3>יצירת קשר</h3><p>בנושא נגישות: mt-edid@ortarad.ort.org.il | 054-2386216</p><button class="policy-close" onclick="document.getElementById(\'policyModal\').classList.remove(\'open\')">סגור</button>',
+  cancel: '<h2>מדיניות ביטולים</h2><h3>ביטול עד 14 ימים לפני</h3><p>החזר מלא של הסכום ששולם.</p><h3>ביטול 7–13 ימים לפני</h3><p>החזר 75% מהסכום.</p><h3>ביטול 48 שעות עד 6 ימים לפני</h3><p>החזר 50% מהסכום.</p><h3>ביטול פחות מ-48 שעות</h3><p>אין החזר. ניתן להעביר את ההזמנה לאדם אחר.</p><h3>אירועים חריגים</h3><p>במקרה של סגירת גבולות, מלחמה או אסון טבע – נבחן כל מקרה לגופו.</p><button class="policy-close" onclick="document.getElementById(\'policyModal\').classList.remove(\'open\')">סגור</button>'
+};
+
+function openPolicy(type) {
+  document.getElementById('policyContent').innerHTML = policies[type] || '';
+  document.getElementById('policyModal').classList.add('open');
+}
+
+// Close modals on overlay click
+document.getElementById('destModal').addEventListener('click', function(e){if(e.target===this)closeDestModal();});
+document.getElementById('dealModal').addEventListener('click', function(e){if(e.target===this)this.classList.remove('open');});
+document.getElementById('policyModal').addEventListener('click', function(e){if(e.target===this)this.classList.remove('open');});
+
+// Navbar scroll
+window.addEventListener('scroll', function(){
+  var nb = document.getElementById('navbar');
+  if (window.scrollY > 50) nb.style.background = 'rgba(10,10,10,0.98)';
+  else nb.style.background = 'rgba(10,10,10,0.95)';
+});
+
+// Init all
+initSlider();
+initMarquee();
+initStats();
+initDestinations();
+initDeals();
+initBlog();
+</script>
+</body>
+</html>
+
