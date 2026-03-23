@@ -3,71 +3,338 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ניהול | Golden Tour</title>
-<!-- ⚠️ הכניסו כאן את ה-Firebase SDK שלכם -->
+<title>Golden Tour | סוכנות נסיעות</title>
+<meta name="description" content="Golden Tour – סוכנות הנסיעות שלך לחופשה מושלמת. דילים, יעדים, ומלונות ברחבי העולם.">
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <style>
-:root{--gold:#C9A84C;--gold-dark:#a07830;--black:#0a0a0a;--dark2:#181818;--dark3:#222;--text:#eee;--text2:#bbb;--green:#22c55e;--red:#ef4444;}
+/* ===== RESET & ROOT ===== */
+:root{--gold:#C9A84C;--gold-light:#e8c96a;--gold-dark:#a07830;--black:#0a0a0a;--dark:#111;--dark2:#181818;--dark3:#222;--text:#eee;--text2:#bbb;--green:#22c55e;--red:#ef4444;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--black);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;direction:rtl;min-height:100vh;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;direction:rtl;overflow-x:hidden;}
+a{color:var(--gold);text-decoration:none;}
+img{max-width:100%;}
 
-/* LOGIN */
+/* ===== PAGES ===== */
+.page{display:none;}
+.page.active{display:block;}
+
+/* ===== NAVBAR ===== */
+#navbar{position:fixed;top:0;width:100%;z-index:1000;background:rgba(10,10,10,0.95);backdrop-filter:blur(10px);border-bottom:1px solid rgba(201,168,76,0.3);padding:0 2rem;}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:70px;max-width:1400px;margin:0 auto;}
+.logo{display:flex;align-items:center;gap:10px;font-size:1.5rem;font-weight:700;color:var(--gold);cursor:pointer;}
+.logo span{color:var(--gold);}
+.nav-links{display:flex;gap:1.5rem;list-style:none;}
+.nav-links a{color:var(--text2);font-size:.95rem;transition:.3s;padding:5px 0;border-bottom:2px solid transparent;cursor:pointer;}
+.nav-links a:hover,.nav-links a.active{color:var(--gold);border-bottom-color:var(--gold);}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:5px;}
+.hamburger span{width:25px;height:2px;background:var(--gold);transition:.3s;}
+@media(max-width:900px){.nav-links{display:none;flex-direction:column;position:absolute;top:70px;right:0;width:100%;background:var(--dark);padding:1rem 2rem;gap:.5rem;}
+.nav-links.open{display:flex;}.hamburger{display:flex;}}
+
+/* ===== BUTTONS ===== */
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000;border:none;padding:.8rem 2rem;border-radius:30px;font-weight:700;cursor:pointer;font-size:.95rem;transition:.3s;display:inline-block;}
+.btn-gold:hover{transform:scale(1.04);box-shadow:0 5px 20px rgba(201,168,76,.4);}
+.btn-outline{background:transparent;border:2px solid var(--gold);color:var(--gold);padding:.7rem 1.8rem;border-radius:30px;font-weight:600;cursor:pointer;font-size:.9rem;transition:.3s;display:inline-block;}
+.btn-outline:hover{background:var(--gold);color:#000;}
+
+/* ===== SECTION TITLES ===== */
+section{padding:5rem 2rem;}
+.section-title{text-align:center;margin-bottom:3rem;}
+.section-title h2{font-size:2.2rem;color:var(--gold);margin-bottom:.5rem;}
+.section-title p{color:var(--text2);font-size:1rem;}
+.section-title::after{content:'';display:block;width:60px;height:3px;background:var(--gold);margin:1rem auto 0;}
+.container{max-width:1100px;margin:0 auto;}
+
+/* ===== FILTER TABS ===== */
+.filter-tabs{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin-bottom:2.5rem;}
+.filter-btn{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:.5rem 1.4rem;border-radius:25px;cursor:pointer;font-size:.9rem;transition:.3s;}
+.filter-btn.active,.filter-btn:hover{background:var(--gold);color:#000;}
+
+/* ===== HERO SLIDER ===== */
+#hero{position:relative;height:100vh;overflow:hidden;margin-top:70px;}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity 1s;}
+.slide.active{opacity:1;}
+.slide img{width:100%;height:100%;object-fit:cover;}
+.slide-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8) 0%,rgba(0,0,0,.3) 60%,transparent 100%);}
+.slide-text{position:absolute;bottom:12%;right:8%;text-align:right;}
+.slide-text h1{font-size:clamp(2rem,5vw,4rem);color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.8);}
+.slide-text p{font-size:1.2rem;color:var(--gold);margin-top:.5rem;}
+.slider-nav{position:absolute;bottom:5%;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.slider-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer;transition:.3s;}
+.slider-dot.active{background:var(--gold);transform:scale(1.3);}
+.slider-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(201,168,76,.3);border:1px solid var(--gold);color:var(--gold);width:50px;height:50px;border-radius:50%;font-size:1.5rem;cursor:pointer;transition:.3s;display:flex;align-items:center;justify-content:center;}
+.slider-arrow:hover{background:var(--gold);color:#000;}
+.slider-prev{right:2%;}.slider-next{left:2%;}
+
+/* ===== MARQUEE ===== */
+.marquee-strip{background:var(--gold);padding:.6rem 0;overflow:hidden;}
+.marquee-inner{display:flex;animation:marquee 20s linear infinite;white-space:nowrap;}
+.marquee-inner span{color:#000;font-weight:600;font-size:.9rem;padding:0 2rem;}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ===== STATS ===== */
+#stats{background:var(--dark2);padding:3rem 2rem;}
+.stats-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:2rem;max-width:1200px;margin:0 auto;}
+.stat-card{text-align:center;padding:1.5rem 2rem;border:1px solid rgba(201,168,76,.3);border-radius:12px;min-width:180px;background:var(--dark3);}
+.stat-num{font-size:2.5rem;font-weight:700;color:var(--gold);}
+.stat-label{color:var(--text2);margin-top:.3rem;font-size:.9rem;}
+
+/* ===== DESTINATIONS ===== */
+#destinations{background:var(--black);}
+.dest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;max-width:1400px;margin:0 auto;}
+.dest-card{border-radius:14px;overflow:hidden;background:var(--dark2);cursor:pointer;transition:.3s;border:1px solid rgba(201,168,76,.1);}
+.dest-card:hover{transform:translateY(-6px);border-color:var(--gold);box-shadow:0 10px 30px rgba(201,168,76,.2);}
+.dest-img{height:200px;overflow:hidden;}
+.dest-img img{width:100%;height:100%;object-fit:cover;transition:.5s;}
+.dest-card:hover .dest-img img{transform:scale(1.08);}
+.dest-info{padding:1rem;}
+.dest-info h3{color:var(--gold);margin-bottom:.3rem;}
+.dest-info p{color:var(--text2);font-size:.85rem;}
+.dest-tag{display:inline-block;background:rgba(201,168,76,.15);color:var(--gold);font-size:.75rem;padding:.2rem .7rem;border-radius:20px;margin-top:.5rem;}
+
+/* ===== DEALS ===== */
+#deals{background:var(--dark2);}
+.deals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem;max-width:1400px;margin:0 auto;}
+.deal-card{background:var(--dark3);border-radius:14px;overflow:hidden;cursor:pointer;transition:.3s;border:1px solid rgba(201,168,76,.15);}
+.deal-card:hover{transform:translateY(-5px);border-color:var(--gold);}
+.deal-img{height:190px;overflow:hidden;position:relative;}
+.deal-img img{width:100%;height:100%;object-fit:cover;transition:.5s;}
+.deal-card:hover .deal-img img{transform:scale(1.07);}
+.deal-badge{position:absolute;top:12px;right:12px;background:var(--gold);color:#000;font-weight:700;font-size:.8rem;padding:.3rem .8rem;border-radius:20px;}
+.deal-info{padding:1.2rem;}
+.deal-info h3{color:#fff;margin-bottom:.4rem;}
+.deal-info .deal-price{font-size:1.4rem;color:var(--gold);font-weight:700;margin:.5rem 0;}
+.deal-info .deal-old{text-decoration:line-through;color:#888;font-size:.9rem;}
+.deal-info p{color:var(--text2);font-size:.85rem;}
+
+/* ===== HOTELS ===== */
+#hotels{background:var(--black);}
+.hotel-tabs{display:flex;gap:1rem;justify-content:center;margin-bottom:2rem;flex-wrap:wrap;}
+.hotel-tab{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:.6rem 1.6rem;border-radius:25px;cursor:pointer;font-size:.9rem;transition:.3s;}
+.hotel-tab.active,.hotel-tab:hover{background:var(--gold);color:#000;}
+.hotel-frame{max-width:1200px;margin:0 auto;border-radius:14px;overflow:hidden;border:1px solid rgba(201,168,76,.3);}
+.hotel-frame iframe{width:100%;height:600px;border:none;}
+
+/* ===== INSTAGRAM ===== */
+#instagram{background:var(--dark2);}
+.instagram-inner{max-width:1200px;margin:0 auto;}
+
+/* ===== BLOG PREVIEW ===== */
+#blog-section{background:var(--dark2);}
+.blog-grid-home{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;max-width:1400px;margin:0 auto;}
+.blog-card{background:var(--dark2);border-radius:14px;overflow:hidden;cursor:pointer;transition:.3s;border:1px solid rgba(201,168,76,.1);}
+.blog-card:hover{transform:translateY(-5px);border-color:var(--gold);box-shadow:0 10px 30px rgba(201,168,76,.15);}
+.blog-card img{width:100%;height:180px;object-fit:cover;transition:.5s;}
+.blog-card:hover img{transform:scale(1.05);}
+.blog-card-body{padding:1.1rem;}
+.blog-card-body h3{color:#fff;font-size:1rem;margin-bottom:.4rem;}
+.blog-card-body p{color:var(--text2);font-size:.83rem;line-height:1.6;}
+.blog-tag{color:var(--gold);font-size:.78rem;margin-bottom:.4rem;display:block;}
+.blog-card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:.8rem;border-top:1px solid rgba(201,168,76,.1);}
+.read-more{color:var(--gold);font-size:.85rem;font-weight:600;}
+
+/* ===== CONTACT ===== */
+#contact{background:var(--black);}
+.contact-wrap{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:3rem;}
+@media(max-width:768px){.contact-wrap{grid-template-columns:1fr;}}
+.contact-info h3{color:var(--gold);font-size:1.3rem;margin-bottom:1.5rem;}
+.info-block{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.4rem;}
+.info-icon{font-size:1.4rem;margin-top:.2rem;}
+.info-text strong{color:#fff;display:block;margin-bottom:.2rem;}
+.info-text span{color:var(--text2);font-size:.9rem;}
+.contact-form h3{color:var(--gold);font-size:1.3rem;margin-bottom:1.5rem;}
+.form-group{margin-bottom:1.1rem;}
+.form-group input,.form-group textarea,.form-group select{width:100%;background:var(--dark2);border:1px solid rgba(201,168,76,.3);color:var(--text);padding:.8rem 1rem;border-radius:8px;font-size:.95rem;font-family:inherit;direction:rtl;outline:none;transition:.3s;}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--gold);}
+.form-group textarea{height:120px;resize:vertical;}
+
+/* ===== FOOTER ===== */
+footer{background:var(--dark2);padding:3rem 2rem 1.5rem;border-top:1px solid rgba(201,168,76,.2);}
+.footer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2rem;max-width:1200px;margin:0 auto 2rem;}
+.footer-col h4{color:var(--gold);margin-bottom:1rem;}
+.footer-col p,.footer-col a{color:var(--text2);font-size:.9rem;line-height:1.8;}
+.footer-col a:hover{color:var(--gold);}
+.footer-bottom{text-align:center;color:#555;font-size:.8rem;border-top:1px solid rgba(201,168,76,.1);padding-top:1.5rem;}
+.social-links{display:flex;gap:1rem;margin-top:.8rem;}
+.social-links a{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:var(--gold);width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:.3s;}
+.social-links a:hover{background:var(--gold);color:#000;}
+
+/* ===== FLOATING ===== */
+.float-wa{position:fixed;bottom:100px;left:20px;z-index:999;background:#25D366;color:#fff;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;box-shadow:0 4px 20px rgba(37,211,102,.4);transition:.3s;}
+.float-wa:hover{transform:scale(1.1);}
+
+/* ===== CHATBOT ===== */
+.chatbot-wrap{position:fixed;bottom:20px;right:20px;z-index:998;}
+.chat-toggle{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000;width:56px;height:56px;border-radius:50%;border:none;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 20px rgba(201,168,76,.5);transition:.3s;}
+.chat-toggle:hover{transform:scale(1.1);}
+.chat-window{position:absolute;bottom:70px;right:0;width:350px;max-height:500px;background:var(--dark2);border-radius:16px;border:1px solid rgba(201,168,76,.3);display:none;flex-direction:column;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.6);}
+.chat-window.open{display:flex;}
+.chat-header{background:linear-gradient(135deg,var(--gold),var(--gold-dark));padding:1rem;color:#000;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+.chat-header span{font-size:.75rem;font-weight:400;opacity:.8;}
+.chat-messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.8rem;min-height:200px;}
+.chat-msg{max-width:85%;padding:.7rem 1rem;border-radius:12px;font-size:.88rem;line-height:1.6;}
+.chat-msg.bot{background:var(--dark3);color:var(--text);align-self:flex-start;border-radius:12px 12px 12px 4px;}
+.chat-msg.user{background:var(--gold);color:#000;align-self:flex-end;border-radius:12px 12px 4px 12px;}
+.chat-input-row{display:flex;border-top:1px solid rgba(201,168,76,.2);padding:.7rem;}
+.chat-input-row input{flex:1;background:var(--dark3);border:1px solid rgba(201,168,76,.2);color:var(--text);padding:.6rem .9rem;border-radius:20px;font-size:.88rem;font-family:inherit;direction:rtl;outline:none;}
+.chat-input-row button{background:var(--gold);border:none;color:#000;width:36px;height:36px;border-radius:50%;margin-right:.5rem;cursor:pointer;font-size:1rem;}
+.chat-typing{font-size:.8rem;color:var(--text2);padding:.3rem 1rem;}
+
+/* ===== ACCESSIBILITY ===== */
+.acc-btn{position:fixed;bottom:20px;left:90px;z-index:999;background:#1a73e8;color:#fff;width:50px;height:50px;border-radius:50%;border:none;font-size:1.3rem;cursor:pointer;box-shadow:0 4px 15px rgba(26,115,232,.4);}
+.acc-panel{position:fixed;bottom:80px;left:20px;width:280px;background:var(--dark2);border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:1.2rem;z-index:999;display:none;}
+.acc-panel.open{display:block;}
+.acc-panel h4{color:var(--gold);margin-bottom:1rem;}
+.acc-option{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;color:var(--text2);font-size:.9rem;}
+.acc-option button{background:rgba(201,168,76,.2);border:1px solid var(--gold);color:var(--gold);padding:.3rem .8rem;border-radius:20px;cursor:pointer;font-size:.8rem;}
+
+/* ===== MODALS ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--dark2);border-radius:18px;max-width:780px;width:100%;max-height:90vh;overflow-y:auto;border:1px solid rgba(201,168,76,.3);position:relative;}
+.modal-img{width:100%;height:260px;object-fit:cover;border-radius:18px 18px 0 0;}
+.modal-body{padding:1.8rem;}
+.modal-body h2{color:var(--gold);font-size:1.6rem;margin-bottom:1rem;}
+.modal-desc{color:var(--text2);line-height:1.8;margin-bottom:1.2rem;}
+.modal-section{margin-bottom:1.2rem;}
+.modal-section h4{color:var(--gold);margin-bottom:.6rem;font-size:1rem;}
+.place-item{background:var(--dark3);border-radius:8px;padding:.8rem;margin-bottom:.6rem;}
+.place-item strong{color:#fff;display:block;margin-bottom:.3rem;}
+.place-item span{color:var(--text2);font-size:.85rem;}
+.modal-tip{background:rgba(201,168,76,.1);border-right:3px solid var(--gold);padding:1rem;border-radius:0 8px 8px 0;color:var(--text2);font-size:.9rem;margin-bottom:1.2rem;}
+.modal-close{position:absolute;top:1rem;left:1rem;background:rgba(201,168,76,.2);border:none;color:var(--gold);width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1;}
+
+/* ===== ARTICLE MODAL ===== */
+.article-modal{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:3000;overflow-y:auto;display:none;}
+.article-modal.open{display:block;}
+.article-inner{max-width:820px;margin:2rem auto 4rem;background:var(--dark2);border-radius:20px;overflow:hidden;border:1px solid rgba(201,168,76,.25);}
+.article-inner img.article-hero-img{width:100%;height:300px;object-fit:cover;}
+.article-content{padding:2rem;}
+.article-content h1{color:var(--gold);font-size:1.9rem;margin-bottom:.5rem;line-height:1.4;}
+.article-meta{color:#666;font-size:.82rem;margin-bottom:1.8rem;padding-bottom:1rem;border-bottom:1px solid rgba(201,168,76,.15);}
+.article-content h3{color:var(--gold-light);font-size:1.1rem;margin:1.8rem 0 .7rem;}
+.article-content p{color:var(--text2);line-height:1.95;margin-bottom:1rem;font-size:.95rem;}
+.article-content ul{padding-right:1.2rem;margin-bottom:1rem;}
+.article-content ul li{color:var(--text2);line-height:1.9;font-size:.93rem;margin-bottom:.3rem;}
+.tip-box{background:rgba(201,168,76,.08);border-right:4px solid var(--gold);padding:1.2rem 1.5rem;border-radius:0 10px 10px 0;margin:1.5rem 0;}
+.tip-box p{color:var(--text2);font-size:.92rem;margin:0;}
+.article-cta{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:2rem;margin-top:2.5rem;text-align:center;}
+.article-cta h3{color:var(--gold);margin-bottom:.7rem;}
+.article-cta p{color:var(--text2);margin-bottom:1.2rem;}
+.article-tag-badge{background:rgba(201,168,76,.15);color:var(--gold);font-size:.78rem;padding:.3rem .9rem;border-radius:20px;display:inline-block;margin-bottom:1rem;}
+.article-close-btn{position:fixed;top:20px;left:20px;background:var(--gold);border:none;color:#000;width:44px;height:44px;border-radius:50%;font-size:1.4rem;cursor:pointer;z-index:3001;display:flex;align-items:center;justify-content:center;}
+
+/* ===== POLICY MODAL ===== */
+.policy-modal{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:4000;overflow-y:auto;display:none;padding:1rem;}
+.policy-modal.open{display:block;}
+.policy-inner{max-width:700px;margin:2rem auto;background:var(--dark2);border-radius:16px;padding:2rem;border:1px solid rgba(201,168,76,.3);}
+.policy-inner h2{color:var(--gold);margin-bottom:1rem;}
+.policy-inner h3{color:var(--gold-light);margin:1.2rem 0 .5rem;}
+.policy-inner p,.policy-inner li{color:var(--text2);line-height:1.9;font-size:.92rem;}
+.policy-inner ul{padding-right:1.2rem;margin-bottom:.8rem;}
+.policy-close{background:var(--gold);border:none;color:#000;padding:.6rem 2rem;border-radius:20px;cursor:pointer;font-weight:700;margin-top:1rem;}
+
+/* ========== ABOUT PAGE ========== */
+.about-hero{margin-top:70px;position:relative;height:420px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.about-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.about-hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.5),rgba(10,10,10,1));}
+.about-hero-text{position:relative;text-align:center;z-index:2;}
+.about-hero-text h1{font-size:clamp(2rem,5vw,3.5rem);color:var(--gold);}
+.about-hero-text p{color:var(--text2);font-size:1.1rem;margin-top:.7rem;}
+.story-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;}
+@media(max-width:768px){.story-grid{grid-template-columns:1fr;}}
+.story-img{border-radius:18px;overflow:hidden;border:2px solid rgba(201,168,76,.3);box-shadow:0 20px 60px rgba(0,0,0,.6);}
+.story-img img{width:100%;height:380px;object-fit:cover;}
+.story-text h2{font-size:1.8rem;color:var(--gold);margin-bottom:1.2rem;}
+.story-text p{color:var(--text2);line-height:1.9;margin-bottom:1rem;font-size:.97rem;}
+.story-text .highlight{color:var(--gold-light);font-weight:600;}
+.values-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.8rem;}
+.value-card{background:var(--dark3);border-radius:16px;padding:2rem;border:1px solid rgba(201,168,76,.15);transition:.3s;}
+.value-card:hover{border-color:var(--gold);transform:translateY(-4px);}
+.value-icon{font-size:2.5rem;margin-bottom:1rem;}
+.value-card h3{color:var(--gold);font-size:1.1rem;margin-bottom:.8rem;}
+.value-card p{color:var(--text2);line-height:1.8;font-size:.9rem;}
+.timeline{position:relative;max-width:700px;margin:0 auto;}
+.timeline::before{content:'';position:absolute;right:24px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--gold),transparent);}
+.tl-item{display:flex;gap:1.5rem;margin-bottom:2.5rem;}
+.tl-dot{min-width:50px;height:50px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#000;font-size:.9rem;z-index:1;}
+.tl-content{background:var(--dark3);border-radius:12px;padding:1.2rem 1.5rem;flex:1;border:1px solid rgba(201,168,76,.15);}
+.tl-content h4{color:var(--gold);margin-bottom:.4rem;}
+.tl-content p{color:var(--text2);font-size:.9rem;line-height:1.7;}
+.astats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;}
+.astat{background:var(--dark2);border-radius:14px;padding:2rem;text-align:center;border:1px solid rgba(201,168,76,.2);}
+.astat-num{font-size:2.8rem;font-weight:700;color:var(--gold);}
+.astat-label{color:var(--text2);margin-top:.4rem;font-size:.9rem;}
+.why-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;}
+.why-card{background:var(--dark3);border-radius:14px;padding:1.5rem;border-right:4px solid var(--gold);}
+.why-card h4{color:#fff;margin-bottom:.5rem;}
+.why-card p{color:var(--text2);font-size:.88rem;line-height:1.7;}
+.edi-card{background:var(--dark2);border-radius:20px;padding:3rem 2rem;border:1px solid rgba(201,168,76,.3);margin-top:2rem;text-align:center;}
+.edi-avatar{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-size:3rem;margin:0 auto 1.5rem;}
+.edi-card h3{font-size:1.5rem;color:var(--gold);margin-bottom:.5rem;}
+.edi-card .role{color:var(--text2);font-size:.95rem;margin-bottom:1.2rem;}
+.edi-card p{color:var(--text2);line-height:1.9;font-size:.95rem;}
+.edi-contact{display:flex;gap:1rem;justify-content:center;margin-top:1.5rem;flex-wrap:wrap;}
+.cta-box{text-align:center;max-width:700px;margin:0 auto;}
+.cta-box h2{font-size:2rem;color:var(--gold);margin-bottom:1rem;}
+.cta-box p{color:var(--text2);margin-bottom:2rem;line-height:1.8;}
+.cta-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;}
+
+/* ========== BLOG PAGE ========== */
+.blog-hero{margin-top:70px;background:linear-gradient(135deg,rgba(201,168,76,.1),var(--black));padding:4rem 2rem;text-align:center;border-bottom:1px solid rgba(201,168,76,.2);}
+.blog-hero h1{font-size:2.5rem;color:var(--gold);}
+.blog-hero p{color:var(--text2);margin-top:.7rem;}
+.blog-main{padding:4rem 2rem;max-width:1400px;margin:0 auto;}
+.blog-grid-full{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.8rem;}
+.blog-card-full{background:var(--dark2);border-radius:16px;overflow:hidden;cursor:pointer;transition:.3s;border:1px solid rgba(201,168,76,.1);}
+.blog-card-full:hover{transform:translateY(-6px);border-color:var(--gold);box-shadow:0 10px 30px rgba(201,168,76,.15);}
+.blog-card-full img{width:100%;height:200px;object-fit:cover;transition:.5s;}
+.blog-card-full:hover img{transform:scale(1.05);}
+.blog-card-full .blog-card-body{padding:1.3rem;}
+.blog-card-full .blog-tag-badge{background:rgba(201,168,76,.15);color:var(--gold);font-size:.75rem;padding:.25rem .8rem;border-radius:20px;display:inline-block;margin-bottom:.7rem;}
+.blog-card-full .blog-card-body h3{color:#fff;font-size:1.05rem;margin-bottom:.6rem;line-height:1.5;}
+.blog-card-full .blog-card-body p{color:var(--text2);font-size:.85rem;line-height:1.7;}
+
+/* ========== ADMIN PAGE ========== */
+#page-admin{min-height:100vh;}
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at center,rgba(201,168,76,.08),var(--black));}
 .login-box{background:var(--dark2);border-radius:20px;padding:3rem;width:100%;max-width:420px;border:1px solid rgba(201,168,76,.3);text-align:center;}
 .login-box h1{color:var(--gold);font-size:1.8rem;margin-bottom:.4rem;}
 .login-box p{color:var(--text2);margin-bottom:2rem;font-size:.9rem;}
 .login-box input{width:100%;background:var(--dark3);border:1px solid rgba(201,168,76,.3);color:var(--text);padding:.9rem 1rem;border-radius:10px;font-size:1rem;direction:rtl;outline:none;margin-bottom:1rem;}
 .login-box input:focus{border-color:var(--gold);}
-.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000;border:none;padding:.85rem 2rem;border-radius:30px;font-weight:700;cursor:pointer;font-size:1rem;transition:.3s;width:100%;}
-.btn-gold:hover{transform:scale(1.02);}
 .login-err{color:var(--red);font-size:.85rem;margin-top:.8rem;display:none;}
-
-/* ADMIN LAYOUT */
 .admin-wrap{display:none;min-height:100vh;}
 .sidebar{position:fixed;top:0;right:0;width:260px;height:100vh;background:var(--dark2);border-left:1px solid rgba(201,168,76,.2);padding:1.5rem 1rem;overflow-y:auto;z-index:100;}
 .sidebar-logo{color:var(--gold);font-size:1.2rem;font-weight:700;margin-bottom:.3rem;}
 .sidebar-sub{color:var(--text2);font-size:.78rem;margin-bottom:2rem;}
 .sidebar-menu{display:flex;flex-direction:column;gap:.3rem;}
-.menu-item{background:transparent;border:none;color:var(--text2);padding:.75rem 1rem;border-radius:10px;cursor:pointer;text-align:right;font-size:.9rem;font-family:inherit;transition:.2s;display:flex;align-items:center;gap:.7rem;}
+.menu-item{background:transparent;border:none;color:var(--text2);padding:.75rem 1rem;border-radius:10px;cursor:pointer;text-align:right;font-size:.9rem;font-family:inherit;transition:.2s;display:flex;align-items:center;gap:.7rem;width:100%;}
 .menu-item:hover,.menu-item.active{background:rgba(201,168,76,.12);color:var(--gold);}
 .menu-section{color:#555;font-size:.72rem;padding:.5rem 1rem;margin-top:.5rem;}
 .sidebar-logout{position:absolute;bottom:1.5rem;right:1rem;left:1rem;}
-
-/* MAIN */
-.main-content{margin-right:260px;padding:2rem;}
+.admin-main{margin-right:260px;padding:2rem;}
 .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid rgba(201,168,76,.2);}
 .page-header h2{color:var(--gold);font-size:1.5rem;}
-.status-bar{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:.6rem 1.2rem;border-radius:8px;font-size:.85rem;display:none;}
+.status-bar{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:.6rem 1.2rem;border-radius:8px;font-size:.85rem;display:none;margin-bottom:1rem;}
 .status-bar.error{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:var(--red);}
-
-/* PANELS */
 .admin-panel{display:none;}
 .admin-panel.active{display:block;}
 .card{background:var(--dark2);border-radius:14px;padding:1.8rem;margin-bottom:1.5rem;border:1px solid rgba(201,168,76,.15);}
 .card h3{color:var(--gold);margin-bottom:1.2rem;font-size:1rem;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
 @media(max-width:700px){.form-row{grid-template-columns:1fr;}}
-.form-group{margin-bottom:1rem;}
 .form-group label{display:block;color:var(--text2);font-size:.85rem;margin-bottom:.4rem;}
-.form-group input,.form-group textarea,.form-group select{width:100%;background:var(--dark3);border:1px solid rgba(201,168,76,.25);color:var(--text);padding:.75rem 1rem;border-radius:8px;font-size:.9rem;font-family:inherit;direction:rtl;outline:none;transition:.3s;}
-.form-group input:focus,.form-group textarea:focus{border-color:var(--gold);}
-.form-group textarea{min-height:100px;resize:vertical;}
 .save-btn{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000;border:none;padding:.75rem 2rem;border-radius:25px;font-weight:700;cursor:pointer;font-size:.9rem;transition:.3s;}
 .save-btn:hover{transform:scale(1.03);}
 .img-preview{width:100%;height:140px;object-fit:cover;border-radius:8px;margin-top:.5rem;border:1px solid rgba(201,168,76,.2);display:none;}
-
-/* DASHBOARD */
 .dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.2rem;margin-bottom:2rem;}
 .dash-card{background:var(--dark2);border-radius:14px;padding:1.5rem;border:1px solid rgba(201,168,76,.15);text-align:center;}
 .dash-icon{font-size:2rem;margin-bottom:.5rem;}
 .dash-num{font-size:1.8rem;font-weight:700;color:var(--gold);}
 .dash-label{color:var(--text2);font-size:.85rem;margin-top:.2rem;}
-.activity-list{list-style:none;}
-.activity-list li{padding:.7rem 0;border-bottom:1px solid rgba(201,168,76,.1);color:var(--text2);font-size:.88rem;display:flex;gap:.7rem;}
-.activity-list li span{color:var(--gold);}
-
-/* ITEMS LIST */
 .items-list{display:flex;flex-direction:column;gap:.7rem;}
 .list-item{background:var(--dark3);border-radius:10px;padding:1rem 1.2rem;display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(201,168,76,.1);}
 .list-item-info h4{color:#fff;font-size:.95rem;}
@@ -80,251 +347,1061 @@ body{background:var(--black);color:var(--text);font-family:'Segoe UI',Arial,sans
 </head>
 <body>
 
-<!-- LOGIN -->
-<div class="login-wrap" id="loginWrap">
-  <div class="login-box">
-    <div style="font-size:3rem;margin-bottom:1rem">🔐</div>
-    <h1>Golden Tour</h1>
-    <p>ממשק ניהול | הכניסו את הסיסמה</p>
-    <input type="password" id="pwInput" placeholder="סיסמת ניהול" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="btn-gold" onclick="doLogin()">כניסה לניהול</button>
-    <div class="login-err" id="loginErr">❌ סיסמה שגויה. נסו שוב.</div>
+<!-- ====== NAVBAR ====== -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <div class="logo" onclick="goPage('home');scrollTop()">
+      <span>✈️ Golden Tour</span>
+    </div>
+    <div class="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+    <ul class="nav-links" id="navLinks">
+      <li><a onclick="goPage('home');closeMenu();scrollTop()">ראשי</a></li>
+      <li><a onclick="goPage('home');closeMenu();scrollToId('destinations')">יעדים</a></li>
+      <li><a onclick="goPage('home');closeMenu();scrollToId('deals')">דילים</a></li>
+      <li><a onclick="goPage('blog');closeMenu();scrollTop()" id="nav-blog">בלוג</a></li>
+      <li><a onclick="goPage('home');closeMenu();scrollToId('hotels')">מלונות</a></li>
+      <li><a onclick="goPage('home');closeMenu();scrollToId('instagram')">עקבו אחרינו</a></li>
+      <li><a onclick="goPage('about');closeMenu();scrollTop()" id="nav-about">אודות</a></li>
+      <li><a onclick="goPage('home');closeMenu();scrollToId('contact')">צור קשר</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ============================== -->
+<!-- ======== PAGE: HOME ========== -->
+<!-- ============================== -->
+<div class="page active" id="page-home">
+
+  <!-- HERO SLIDER -->
+  <section id="hero">
+    <div id="sliderContainer"></div>
+    <div class="slide-overlay"></div>
+    <button class="slider-arrow slider-prev" onclick="changeSlide(-1)">&#8250;</button>
+    <button class="slider-arrow slider-next" onclick="changeSlide(1)">&#8249;</button>
+    <div class="slider-nav" id="sliderDots"></div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-strip">
+    <div class="marquee-inner" id="marqueeInner"></div>
+  </div>
+
+  <!-- STATS -->
+  <section id="stats">
+    <div class="stats-grid" id="statsGrid"></div>
+  </section>
+
+  <!-- DESTINATIONS -->
+  <section id="destinations">
+    <div class="section-title">
+      <h2>יעדים מומלצים</h2>
+      <p>בחרו את החופשה הבאה שלכם מתוך 21 יעדים מדהימים</p>
+    </div>
+    <div class="filter-tabs" id="destFilters"></div>
+    <div class="dest-grid" id="destGrid"></div>
+  </section>
+
+  <!-- DEALS -->
+  <section id="deals">
+    <div class="section-title">
+      <h2>🔥 דילים חמים</h2>
+      <p>מבצעים מיוחדים לזמן מוגבל – אל תפספסו!</p>
+    </div>
+    <div class="filter-tabs" id="dealFilters"></div>
+    <div class="deals-grid" id="dealsGrid"></div>
+  </section>
+
+  <!-- HOTELS -->
+  <section id="hotels">
+    <div class="section-title">
+      <h2>מצאו את המלון המושלם</h2>
+      <p>אלפי מלונות ברחבי העולם במחירים הטובים ביותר</p>
+    </div>
+    <div class="hotel-tabs">
+      <button class="hotel-tab active">חפשו מלון</button>
+      <button class="hotel-tab" onclick="window.open('https://www.travelor.com/he?fid=79812','_blank')">פתחו בחלון חדש</button>
+    </div>
+    <div class="hotel-frame" id="hotelFrame">
+      <iframe src="https://www.travelor.com/he?fid=79812" title="חיפוש מלונות" loading="lazy"></iframe>
+    </div>
+  </section>
+
+  <!-- BLOG PREVIEW -->
+  <section id="blog-section">
+    <div class="section-title">
+      <h2>המדריך לנוסע</h2>
+      <p>כתבות מעמיקות שיעזרו לכם לתכנן את החופשה המושלמת</p>
+    </div>
+    <div class="blog-grid-home" id="blogGridHome"></div>
+    <div style="text-align:center;margin-top:2.5rem;">
+      <button class="btn-gold" onclick="goPage('blog');scrollTop()">לכל הכתבות ←</button>
+    </div>
+  </section>
+
+  <!-- INSTAGRAM -->
+  <section id="instagram">
+    <div class="section-title">
+      <h2>עקבו אחרינו באינסטגרם</h2>
+      <p>השראה לחופשה הבאה שלכם</p>
+    </div>
+    <div class="instagram-inner">
+      <behold-widget feed-id="c5utIJ4CqMs327UFnEXY"></behold-widget>
+      <script src="https://w.behold.so/widget.js" type="module"></script>
+      <div style="text-align:center;margin-top:1.5rem;">
+        <a href="https://www.facebook.com/GoldenTour.Edi/?locale=he_IL" target="_blank" class="btn-outline">עקבו גם בפייסבוק 👍</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="section-title">
+      <h2>צרו קשר</h2>
+      <p>נשמח לעזור לכם לתכנן את החופשה המושלמת</p>
+    </div>
+    <div class="contact-wrap">
+      <div class="contact-info">
+        <h3>פרטי התקשרות</h3>
+        <div class="info-block">
+          <div class="info-icon">🕐</div>
+          <div class="info-text"><strong>ימי ושעות פעילות</strong><span>ראשון – חמישי: 09:00 – 21:00</span><span style="display:block">שישי: 09:00 – 14:30</span></div>
+        </div>
+        <div class="info-block">
+          <div class="info-icon">📍</div>
+          <div class="info-text"><strong>כתובתנו</strong><span>האלוף דוד 6, ראשון לציון</span></div>
+        </div>
+        <div class="info-block">
+          <div class="info-icon">📞</div>
+          <div class="info-text"><strong>אדי | 054-2386216</strong><span>זמינים לשיחה ולוואטסאפ</span></div>
+        </div>
+        <div class="info-block">
+          <div class="info-icon">✉️</div>
+          <div class="info-text"><strong>כתובת מייל</strong><span>mt-edid@ortarad.ort.org.il</span></div>
+        </div>
+        <div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
+          <a href="https://wa.me/+972542386216" target="_blank" class="btn-gold" style="display:inline-flex;align-items:center;gap:.5rem;">💬 וואטסאפ</a>
+          <a href="https://www.facebook.com/GoldenTour.Edi/?locale=he_IL" target="_blank" class="btn-outline">Facebook</a>
+        </div>
+      </div>
+      <div class="contact-form">
+        <h3>שלחו לנו הודעה</h3>
+        <div class="form-group"><input type="text" id="cName" placeholder="שמכם המלא"></div>
+        <div class="form-group"><input type="tel" id="cPhone" placeholder="מספר טלפון"></div>
+        <div class="form-group">
+          <select id="cDest">
+            <option value="">בחרו יעד מועדף</option>
+            <option>דובאי</option><option>מונטנגרו</option><option>תאילנד</option>
+            <option>ברצלונה</option><option>פריז</option><option>יפן</option>
+            <option>בודפשט</option><option>בוקרשט</option><option>באקו</option>
+            <option>פראג</option><option>יעד אחר</option>
+          </select>
+        </div>
+        <div class="form-group"><textarea id="cMsg" placeholder="הודעתכם..."></textarea></div>
+        <button class="btn-gold" onclick="sendContactForm()">שלחו הודעה ✉️</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4>Golden Tour</h4>
+        <p>סוכנות נסיעות מקצועית בראשון לציון. אנחנו כאן כדי להפוך את חלום החופשה שלכם למציאות.</p>
+        <div class="social-links">
+          <a href="https://www.facebook.com/GoldenTour.Edi/?locale=he_IL" target="_blank">f</a>
+          <a href="https://wa.me/+972542386216" target="_blank">w</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>ניווט מהיר</h4>
+        <a onclick="scrollToId('destinations')" style="cursor:pointer">יעדים</a><br>
+        <a onclick="scrollToId('deals')" style="cursor:pointer">דילים חמים</a><br>
+        <a onclick="scrollToId('hotels')" style="cursor:pointer">מלונות</a><br>
+        <a onclick="goPage('blog');scrollTop()" style="cursor:pointer">בלוג</a><br>
+        <a onclick="goPage('about');scrollTop()" style="cursor:pointer">אודות</a><br>
+        <a onclick="scrollToId('contact')" style="cursor:pointer">צור קשר</a>
+      </div>
+      <div class="footer-col">
+        <h4>מידע משפטי</h4>
+        <a href="#" onclick="openPolicy('privacy')">מדיניות פרטיות</a><br>
+        <a href="#" onclick="openPolicy('terms')">תנאי שימוש</a><br>
+        <a href="#" onclick="openPolicy('accessibility')">הצהרת נגישות</a><br>
+        <a href="#" onclick="openPolicy('cancel')">מדיניות ביטולים</a>
+      </div>
+      <div class="footer-col">
+        <h4>שעות פעילות</h4>
+        <p>א–ה: 09:00–21:00</p><p>שישי: 09:00–14:30</p>
+        <p style="margin-top:.8rem">📞 054-2386216</p>
+        <p>📍 האלוף דוד 6, ראשון לציון</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 Golden Tour. כל הזכויות שמורות. | <a href="#" onclick="openPolicy('privacy')">פרטיות</a> | <a href="#" onclick="openPolicy('terms')">תנאים</a></p>
+    </div>
+  </footer>
+
+</div><!-- /page-home -->
+
+<!-- ============================== -->
+<!-- ======== PAGE: ABOUT ========= -->
+<!-- ============================== -->
+<div class="page" id="page-about">
+
+  <div class="about-hero">
+    <img src="https://images.pexels.com/photos/1285625/pexels-photo-1285625.jpeg" alt="Golden Tour">
+    <div class="about-hero-overlay"></div>
+    <div class="about-hero-text">
+      <h1>✈️ אודות Golden Tour</h1>
+      <p>הסיפור שלנו – מתשוקה לנסיעות לסוכנות שמשנה חיים</p>
+    </div>
+  </div>
+
+  <section id="story"><div class="container">
+    <div class="story-grid">
+      <div class="story-img"><img src="https://images.pexels.com/photos/1001682/pexels-photo-1001682.jpeg" alt="Golden Tour Story"></div>
+      <div class="story-text">
+        <h2>הסיפור שלנו</h2>
+        <p>Golden Tour נולדה מתוך <span class="highlight">אהבה אמיתית לנסיעות ולאנשים</span>. אדי, מייסד הסוכנות, חלם מגיל צעיר לעזור לאנשים לגלות את העולם – לא כתיירים, אלא כנוסעים אמיתיים שחווים תרבות, טעם ורוח מקום.</p>
+        <p>הסוכנות הוקמה בראשון לציון עם מטרה אחת ברורה: <span class="highlight">לתכנן לכל לקוח את החופשה המושלמת שלו</span> – בהתאם לתקציב, לחלום ולמשפחה.</p>
+        <p>אנחנו לא סוכנות של "חבילות מדף". כל חופשה שאנחנו בונים היא ייחודית, מותאמת אישית, ועטופה בשירות אישי ואמיתי – מהשיחה הראשונה ועד שחוזרים הביתה עם מזוודה מלאה בזיכרונות.</p>
+        <p>עם קשרים ישירים עם מלונות, חברות תעופה וספקים מקומיים בעשרות מדינות, אנחנו מציעים <span class="highlight">מחירים שקשה למצוא בשוק הפתוח</span> – ושירות שאי אפשר למצוא אנלוגי.</p>
+      </div>
+    </div>
+  </div></section>
+
+  <section id="values" style="background:var(--dark2)"><div class="container">
+    <div class="section-title"><h2>הערכים שלנו</h2><p>6 עקרונות שמנחים אותנו בכל חופשה שאנחנו בונים</p></div>
+    <div class="values-grid">
+      <div class="value-card"><div class="value-icon">🤝</div><h3>שירות אישי אמיתי</h3><p>אצלנו לא מדברים עם בוט. כל לקוח מקבל מענה ישיר מאדי – בשיחה, בוואטסאפ, במייל. אנחנו זמינים גם כשאתם כבר בחו"ל.</p></div>
+      <div class="value-card"><div class="value-icon">💰</div><h3>מחיר שוחק</h3><p>הקשרים הישירים שלנו עם ספקים מאפשרים לנו להציע מחירים שלא תמצאו בשום אתר השוואת מחירים. אנחנו מתחייבים לבדוק מול כל ספק.</p></div>
+      <div class="value-card"><div class="value-icon">🎯</div><h3>התאמה אישית מלאה</h3><p>כל חופשה נבנית מאפס בהתאם לכם: תאריכים, תקציב, סגנון נסיעה, גיל הילדים, העדפות אוכל – כולם לוקחים חלק בתכנון.</p></div>
+      <div class="value-card"><div class="value-icon">🛡️</div><h3>אמינות ושקיפות</h3><p>אנחנו לא מסתירים עלויות נסתרות. כל מה שכלול – כלול. כל מה שלא – נאמר מראש. אמינות היא לא סלוגן, היא אורח החיים שלנו.</p></div>
+      <div class="value-card"><div class="value-icon">🌍</div><h3>ידע עמוק של יעדים</h3><p>לא מכרנו חבילות שלא ביקרנו בהן. הצוות שלנו מכיר את היעדים מבפנים – את המסעדות המוסתרות, הטיפ המקומי, הדרך הנכונה לנסוע.</p></div>
+      <div class="value-card"><div class="value-icon">❤️</div><h3>חופשה שמשנה חיים</h3><p>חופשה טובה היא לא בילוי – היא חוויה שמשנה פרספקטיבה, מחזקת משפחות ויוצרת זיכרונות לכל החיים. זה מה שאנחנו עושים.</p></div>
+    </div>
+  </div></section>
+
+  <section id="timeline-section"><div class="container">
+    <div class="section-title"><h2>הדרך שעברנו</h2><p>מהחלום הראשון ועד הסוכנות שאנחנו היום</p></div>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot">🌱</div><div class="tl-content"><h4>ההתחלה – החלום הראשון</h4><p>אדי מתחיל לתכנן נסיעות לחברים ולמשפחה – כתחביב. כולם חוזרים עם חיוך וסיפורים. ברור שיש כאן משהו.</p></div></div>
+      <div class="tl-item"><div class="tl-dot">🚀</div><div class="tl-content"><h4>הקמת Golden Tour</h4><p>הסוכנות נפתחת רשמית בראשון לציון. המשרד הראשון קטן, אבל החלום גדול. הלקוחות הראשונים חוזרים מרוצים ומביאים חברים.</p></div></div>
+      <div class="tl-item"><div class="tl-dot">🌍</div><div class="tl-content"><h4>הרחבת יעדים</h4><p>Golden Tour מרחיבה את פורטפוליו היעדים מאירופה למזרח הרחוק, דרום אמריקה ואפריקה. קשרים ישירים עם ספקים מקומיים.</p></div></div>
+      <div class="tl-item"><div class="tl-dot">⭐</div><div class="tl-content"><h4>מוניטין וצמיחה</h4><p>מאות לקוחות מרוצים, עשרות המלצות אישיות, ורשימת לקוחות חוזרים שגדלה מדי חודש. Golden Tour הופכת לשם מוכר.</p></div></div>
+      <div class="tl-item"><div class="tl-dot">💻</div><div class="tl-content"><h4>דיגיטל ושירות 24/7</h4><p>השקת האתר החדש עם AI, מערכת הזמנות ונוכחות דיגיטלית מלאה – כדי לתת שירות מלא גם בשעות הלילה.</p></div></div>
+    </div>
+  </div></section>
+
+  <section id="about-stats" style="background:var(--dark2)"><div class="container">
+    <div class="section-title"><h2>במספרים</h2></div>
+    <div class="astats-grid">
+      <div class="astat"><div class="astat-num">21+</div><div class="astat-label">יעדים ברחבי העולם</div></div>
+      <div class="astat"><div class="astat-num">100%</div><div class="astat-label">שירות אישי לכל לקוח</div></div>
+      <div class="astat"><div class="astat-num">24/7</div><div class="astat-label">זמינות גם בחו"ל</div></div>
+      <div class="astat"><div class="astat-num">⭐⭐⭐⭐⭐</div><div class="astat-label">דירוג לקוחות</div></div>
+    </div>
+  </div></section>
+
+  <section id="team"><div class="container">
+    <div class="section-title"><h2>מי אנחנו</h2><p>הפנים מאחורי Golden Tour</p></div>
+    <div style="max-width:700px;margin:0 auto;">
+      <div class="edi-card">
+        <div class="edi-avatar">👨‍✈️</div>
+        <h3>אדי</h3>
+        <div class="role">מייסד ומנהל Golden Tour | מומחה נסיעות</div>
+        <p>אדי הוא לא רק סוכן נסיעות – הוא חבר שמכיר אותך, מבין מה אתה צריך, ומתאים לך חופשה שתזכור לכל החיים. עם ניסיון אישי ביעדים ברחבי העולם, הוא מביא ידע אמיתי לכל שיחה.</p>
+        <p style="margin-top:.8rem">זמין בטלפון, וואטסאפ ופגישה אישית במשרד בראשון לציון. כי חופשה טובה מתחילה בשיחה טובה.</p>
+        <div class="edi-contact">
+          <a href="tel:054-2386216" class="btn-gold">📞 054-2386216</a>
+          <a href="https://wa.me/+972542386216" target="_blank" class="btn-outline">💬 וואטסאפ</a>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <section id="why" style="background:var(--dark2)"><div class="container">
+    <div class="section-title"><h2>למה Golden Tour?</h2><p>כי יש הבדל בין לקנות חופשה לבין לחוות אחת</p></div>
+    <div class="why-grid">
+      <div class="why-card"><h4>🔥 מחירים שלא תמצאו בשוק הפתוח</h4><p>קשרים ישירים עם מלונות, חברות תעופה וספקים מקומיים – חוסכים לכם אלפי שקלים.</p></div>
+      <div class="why-card"><h4>📱 זמינות מלאה גם בחו"ל</h4><p>גם כשאתם בצד השני של העולם – אדי זמין לוואטסאפ לכל שאלה, בעיה, או שינוי תוכנית.</p></div>
+      <div class="why-card"><h4>🧩 תכנון מא' עד ת'</h4><p>טיסות, מלון, העברות, ביטוח, ויזה, טיולים – הכל בחבילה אחת, בהתאמה אישית.</p></div>
+      <div class="why-card"><h4>🌟 ניסיון אישי ביעדים</h4><p>אנחנו לא מוכרים מקומות שלא ביקרנו. הידע שלנו הוא אמיתי, לא מהאינטרנט.</p></div>
+      <div class="why-card"><h4>👨‍👩‍👧 מתאים לכולם</h4><p>זוגות, משפחות עם ילדים, קבוצות חברים, סולואים – לכל אחד מגיעה החופשה שלו.</p></div>
+      <div class="why-card"><h4>🛡️ ביטחון ואמינות</h4><p>אנחנו עובדים רק עם ספקים מוכרים ואמינים. מדיניות ביטולים ברורה וגמישה.</p></div>
+    </div>
+  </div></section>
+
+  <section id="about-cta" style="background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(10,10,10,1));border-top:1px solid rgba(201,168,76,.2)"><div class="container">
+    <div class="cta-box">
+      <h2>מוכנים לתכנן את החופשה הבאה?</h2>
+      <p>צרו קשר עם אדי עוד היום – שיחה קצרה, ואנחנו מתחילים לבנות לכם חופשה שלא תשכחו.<br>📍 האלוף דוד 6, ראשון לציון | א–ה 09:00–21:00 | ו' 09:00–14:30</p>
+      <div class="cta-btns">
+        <a href="tel:054-2386216" class="btn-gold">📞 התקשרו עכשיו</a>
+        <a href="https://wa.me/+972542386216" target="_blank" class="btn-outline">💬 וואטסאפ</a>
+        <button class="btn-outline" onclick="goPage('home');setTimeout(function(){scrollToId('contact')},100)">✉️ השאירו פרטים</button>
+      </div>
+    </div>
+  </div></section>
+
+  <footer style="background:var(--dark2);padding:2rem;text-align:center;border-top:1px solid rgba(201,168,76,.2);">
+    <p style="color:#555;font-size:.85rem">© 2025 Golden Tour | <button onclick="goPage('home');scrollTop()" style="background:none;border:none;color:var(--gold);cursor:pointer">חזרה לאתר הראשי</button></p>
+  </footer>
+</div><!-- /page-about -->
+
+<!-- ============================== -->
+<!-- ======== PAGE: BLOG ========== -->
+<!-- ============================== -->
+<div class="page" id="page-blog">
+  <div class="blog-hero">
+    <h1>📖 המדריך לנוסע</h1>
+    <p>16 כתבות מעמיקות שיעזרו לכם לתכנן את החופשה המושלמת</p>
+  </div>
+  <div class="blog-main">
+    <div class="filter-tabs" id="blogFilters"></div>
+    <div class="blog-grid-full" id="blogGridFull"></div>
+  </div>
+  <footer style="background:var(--dark2);padding:2rem;text-align:center;border-top:1px solid rgba(201,168,76,.2);">
+    <p style="color:#555;font-size:.85rem">© 2025 Golden Tour | <button onclick="goPage('home');scrollTop()" style="background:none;border:none;color:var(--gold);cursor:pointer">חזרה לאתר הראשי</button></p>
+  </footer>
+</div><!-- /page-blog -->
+
+<!-- ============================== -->
+<!-- ======== PAGE: ADMIN ========= -->
+<!-- ============================== -->
+<div class="page" id="page-admin">
+  <!-- LOGIN -->
+  <div class="login-wrap" id="loginWrap">
+    <div class="login-box">
+      <div style="font-size:3rem;margin-bottom:1rem">🔐</div>
+      <h1>Golden Tour</h1>
+      <p>ממשק ניהול | הכניסו את הסיסמה</p>
+      <input type="password" id="pwInput" placeholder="סיסמת ניהול" onkeydown="if(event.key==='Enter')doAdminLogin()">
+      <button class="btn-gold" onclick="doAdminLogin()" style="width:100%">כניסה לניהול</button>
+      <div class="login-err" id="loginErr">❌ סיסמה שגויה. נסו שוב.</div>
+    </div>
+  </div>
+
+  <!-- ADMIN UI -->
+  <div class="admin-wrap" id="adminWrap">
+    <div class="sidebar">
+      <div class="sidebar-logo">⚙️ Golden Tour Admin</div>
+      <div class="sidebar-sub">ממשק ניהול מלא</div>
+      <div class="sidebar-menu">
+        <div class="menu-section">כללי</div>
+        <button class="menu-item active" onclick="showAdminPanel('dashboard',this)">📊 לוח בקרה</button>
+        <button class="menu-item" onclick="showAdminPanel('siteinfo',this)">🏠 פרטי האתר</button>
+        <div class="menu-section">תוכן</div>
+        <button class="menu-item" onclick="showAdminPanel('hero',this)">🖼️ Hero Slider</button>
+        <button class="menu-item" onclick="showAdminPanel('adm-destinations',this)">🌍 יעדים</button>
+        <button class="menu-item" onclick="showAdminPanel('adm-deals',this)">🔥 דילים</button>
+        <button class="menu-item" onclick="showAdminPanel('adm-blog',this)">📝 בלוג</button>
+        <div class="menu-section">הגדרות</div>
+        <button class="menu-item" onclick="showAdminPanel('adm-contact',this)">📞 פרטי קשר</button>
+        <button class="menu-item" onclick="showAdminPanel('firebase',this)">🔥 Firebase</button>
+      </div>
+      <div class="sidebar-logout">
+        <button class="menu-item" onclick="doAdminLogout()" style="justify-content:center;color:var(--red)">🚪 התנתקות</button>
+      </div>
+    </div>
+
+    <div class="admin-main">
+      <div id="adminStatusBar" class="status-bar"></div>
+
+      <!-- DASHBOARD -->
+      <div class="admin-panel active" id="panel-dashboard">
+        <div class="page-header"><h2>📊 לוח בקרה</h2></div>
+        <div class="dash-grid">
+          <div class="dash-card"><div class="dash-icon">🌍</div><div class="dash-num">21</div><div class="dash-label">יעדים פעילים</div></div>
+          <div class="dash-card"><div class="dash-icon">🔥</div><div class="dash-num">10</div><div class="dash-label">דילים פעילים</div></div>
+          <div class="dash-card"><div class="dash-icon">📝</div><div class="dash-num">16</div><div class="dash-label">כתבות בלוג</div></div>
+          <div class="dash-card"><div class="dash-icon">🖼️</div><div class="dash-num">10</div><div class="dash-label">שקפי Hero</div></div>
+        </div>
+        <div class="card">
+          <h3>⚡ פעולות מהירות</h3>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+            <button class="save-btn" onclick="showAdminPanel('adm-deals',null)">➕ הוסף דיל</button>
+            <button class="save-btn" onclick="showAdminPanel('adm-destinations',null)">➕ הוסף יעד</button>
+            <button class="save-btn" onclick="goPage('home');scrollTop()">👁️ צפה באתר</button>
+          </div>
+        </div>
+        <div class="card"><h3>📋 מצב Firebase</h3><div id="fbStatus" style="color:var(--text2);font-size:.9rem;">לא מחובר עדיין</div></div>
+      </div>
+
+      <!-- SITE INFO -->
+      <div class="admin-panel" id="panel-siteinfo">
+        <div class="page-header"><h2>🏠 פרטי האתר</h2></div>
+        <div class="card">
+          <h3>כותרת ומידע כללי</h3>
+          <div class="form-group"><label>שם הסוכנות</label><input id="si-name" value="Golden Tour"></div>
+          <div class="form-row">
+            <div class="form-group"><label>סלוגן ראשי</label><input id="si-slogan" value="החופשה המושלמת מתחילה כאן"></div>
+            <div class="form-group"><label>כתובת לוגו (URL)</label><input id="si-logo" value="logo.png"></div>
+          </div>
+          <div class="form-group"><label>טקסט Marquee (מופרד בפסיקים)</label><textarea id="si-marquee">✈️ טיסות זולות,🌍 יעדים ברחבי העולם,🏨 מלונות 5 כוכבים</textarea></div>
+          <button class="save-btn" onclick="adminSaveSection('siteinfo')">💾 שמור שינויים</button>
+        </div>
+      </div>
+
+      <!-- HERO -->
+      <div class="admin-panel" id="panel-hero">
+        <div class="page-header"><h2>🖼️ Hero Slider</h2><button class="save-btn" onclick="addHeroSlide()">➕ הוסף שקף</button></div>
+        <div id="heroList"></div>
+      </div>
+
+      <!-- DESTINATIONS -->
+      <div class="admin-panel" id="panel-adm-destinations">
+        <div class="page-header"><h2>🌍 יעדים</h2></div>
+        <div class="card">
+          <h3>הוספה/עריכת יעד</h3>
+          <div class="form-row">
+            <div class="form-group"><label>שם היעד</label><input id="d-name" placeholder="למשל: דובאי"></div>
+            <div class="form-group"><label>קטגוריה</label><select id="d-cat"><option>אירופה</option><option>מזרח</option><option>מערב</option><option>מזרח תיכון</option></select></div>
+          </div>
+          <div class="form-group"><label>קישור תמונה</label><input id="d-img" placeholder="https://images.pexels.com/..."></div>
+          <img id="d-img-preview" class="img-preview">
+          <div class="form-group"><label>תיאור קצר</label><textarea id="d-desc"></textarea></div>
+          <div class="form-group"><label>אוכל מומלץ</label><input id="d-food"></div>
+          <div class="form-group"><label>טיפ מקצועי</label><input id="d-tip"></div>
+          <button class="save-btn" onclick="adminSaveDest()">💾 שמור יעד</button>
+        </div>
+        <div class="card"><h3>יעדים קיימים</h3><div class="items-list" id="destAdminList"></div></div>
+      </div>
+
+      <!-- DEALS -->
+      <div class="admin-panel" id="panel-adm-deals">
+        <div class="page-header"><h2>🔥 דילים חמים</h2></div>
+        <div class="card">
+          <h3>הוספה/עריכת דיל</h3>
+          <div class="form-row">
+            <div class="form-group"><label>שם הדיל</label><input id="dl-name"></div>
+            <div class="form-group"><label>קטגוריה</label><select id="dl-cat"><option>אירופה</option><option>מזרח</option><option>מערב</option><option>מזרח תיכון</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>מחיר (₪)</label><input id="dl-price" placeholder="₪3,490"></div>
+            <div class="form-group"><label>מחיר מקורי (₪)</label><input id="dl-old" placeholder="₪5,200"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>תג (Badge)</label><input id="dl-badge" placeholder="🔥 חם"></div>
+            <div class="form-group"><label>קישור תמונה</label><input id="dl-img"></div>
+          </div>
+          <div class="form-group"><label>תיאור</label><textarea id="dl-desc"></textarea></div>
+          <div class="form-group"><label>הערה</label><input id="dl-note"></div>
+          <button class="save-btn" onclick="adminSaveDeal()">💾 שמור דיל</button>
+        </div>
+        <div class="card"><h3>דילים פעילים</h3><div class="items-list" id="dealAdminList"></div></div>
+      </div>
+
+      <!-- BLOG -->
+      <div class="admin-panel" id="panel-adm-blog">
+        <div class="page-header"><h2>📝 ניהול בלוג</h2></div>
+        <div class="card">
+          <h3>הוספת כתבה חדשה</h3>
+          <div class="form-row">
+            <div class="form-group"><label>כותרת הכתבה</label><input id="bl-title"></div>
+            <div class="form-group"><label>קטגוריה</label><select id="bl-cat"><option>אירופה</option><option>מזרח</option><option>מערב</option><option>מזרח תיכון</option></select></div>
+          </div>
+          <div class="form-group"><label>קישור תמונה</label><input id="bl-img"></div>
+          <div class="form-group"><label>תקציר</label><textarea id="bl-excerpt" style="min-height:70px"></textarea></div>
+          <div class="form-group"><label>תוכן מלא (HTML)</label><textarea id="bl-content" style="min-height:200px"></textarea></div>
+          <button class="save-btn" onclick="adminSaveBlog()">💾 פרסם כתבה</button>
+        </div>
+        <div class="card"><h3>כתבות קיימות</h3><div class="items-list" id="blogAdminList"></div></div>
+      </div>
+
+      <!-- CONTACT -->
+      <div class="admin-panel" id="panel-adm-contact">
+        <div class="page-header"><h2>📞 פרטי יצירת קשר</h2></div>
+        <div class="card">
+          <h3>עדכון פרטי קשר</h3>
+          <div class="form-row">
+            <div class="form-group"><label>שם איש הקשר</label><input id="ct-name" value="אדי"></div>
+            <div class="form-group"><label>מספר טלפון</label><input id="ct-phone" value="054-2386216"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>כתובת מייל</label><input id="ct-email" value="mt-edid@ortarad.ort.org.il"></div>
+            <div class="form-group"><label>כתובת פיזית</label><input id="ct-address" value="האלוף דוד 6, ראשון לציון"></div>
+          </div>
+          <div class="form-group"><label>קישור WhatsApp</label><input id="ct-wa" value="https://wa.me/+972542386216"></div>
+          <button class="save-btn" onclick="adminSaveSection('contact')">💾 שמור פרטים</button>
+        </div>
+      </div>
+
+      <!-- FIREBASE -->
+      <div class="admin-panel" id="panel-firebase">
+        <div class="page-header"><h2>🔥 הגדרות Firebase</h2></div>
+        <div class="card">
+          <h3>פרטי חיבור</h3>
+          <div class="form-group"><label>apiKey</label><input id="fb-apiKey" placeholder="AIzaSy..."></div>
+          <div class="form-row">
+            <div class="form-group"><label>authDomain</label><input id="fb-authDomain"></div>
+            <div class="form-group"><label>databaseURL</label><input id="fb-databaseURL"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>projectId</label><input id="fb-projectId"></div>
+            <div class="form-group"><label>storageBucket</label><input id="fb-storageBucket"></div>
+          </div>
+          <div class="form-group"><label>messagingSenderId</label><input id="fb-messagingSenderId"></div>
+          <div class="form-group"><label>appId</label><input id="fb-appId"></div>
+          <button class="save-btn" onclick="connectFirebase()">🔥 חבר Firebase</button>
+        </div>
+      </div>
+
+    </div><!-- /admin-main -->
+  </div><!-- /admin-wrap -->
+</div><!-- /page-admin -->
+
+<!-- ====== FLOATING ELEMENTS ====== -->
+<a href="https://wa.me/+972542386216" target="_blank" class="float-wa" title="וואטסאפ">💬</a>
+
+<div class="chatbot-wrap">
+  <button class="chat-toggle" onclick="toggleChat()" title="צ'אט עם AI">🤖</button>
+  <div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+      <div><div>Golden Tour AI</div><span>עוזר נסיעות חכם 24/7</span></div>
+      <button onclick="toggleChat()" style="background:none;border:none;color:#000;font-size:1.2rem;cursor:pointer;">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg bot">שלום! אני העוזר החכם של Golden Tour 🌟 אשמח לעזור לך לתכנן את החופשה המושלמת. מה מעניין אותך?</div>
+    </div>
+    <div class="chat-typing" id="chatTyping" style="display:none">מקליד...</div>
+    <div class="chat-input-row">
+      <button onclick="sendChat()">➤</button>
+      <input type="text" id="chatInput" placeholder="שאל אותי על נסיעות..." onkeydown="if(event.key==='Enter')sendChat()">
+    </div>
   </div>
 </div>
 
-<!-- ADMIN -->
-<div class="admin-wrap" id="adminWrap">
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sidebar-logo">⚙️ Golden Tour Admin</div>
-    <div class="sidebar-sub">ממשק ניהול מלא</div>
-    <div class="sidebar-menu">
-      <div class="menu-section">כללי</div>
-      <button class="menu-item active" onclick="showPanel('dashboard',this)">📊 לוח בקרה</button>
-      <button class="menu-item" onclick="showPanel('siteinfo',this)">🏠 פרטי האתר</button>
-      <div class="menu-section">תוכן</div>
-      <button class="menu-item" onclick="showPanel('hero',this)">🖼️ Hero Slider</button>
-      <button class="menu-item" onclick="showPanel('destinations',this)">🌍 יעדים</button>
-      <button class="menu-item" onclick="showPanel('deals',this)">🔥 דילים</button>
-      <button class="menu-item" onclick="showPanel('blog',this)">📝 בלוג</button>
-      <div class="menu-section">הגדרות</div>
-      <button class="menu-item" onclick="showPanel('contact',this)">📞 פרטי קשר</button>
-      <button class="menu-item" onclick="showPanel('firebase',this)">🔥 Firebase</button>
-    </div>
-    <div class="sidebar-logout">
-      <button class="menu-item" onclick="doLogout()" style="width:100%;justify-content:center;color:var(--red)">🚪 התנתקות</button>
+<button class="acc-btn" onclick="toggleAcc()" title="נגישות">♿</button>
+<div class="acc-panel" id="accPanel">
+  <h4>⚙️ הגדרות נגישות</h4>
+  <div class="acc-option"><span>הגדלת טקסט</span><button onclick="changeFontSize(1.1)">A+</button></div>
+  <div class="acc-option"><span>הקטנת טקסט</span><button onclick="changeFontSize(0.9)">A-</button></div>
+  <div class="acc-option"><span>ניגודיות גבוהה</span><button onclick="toggleContrast()">🔲</button></div>
+  <div class="acc-option"><span>קישורים מודגשים</span><button onclick="highlightLinks()">🔗</button></div>
+  <div class="acc-option"><span>איפוס</span><button onclick="resetAcc()">↺</button></div>
+</div>
+
+<!-- ====== DESTINATION MODAL ====== -->
+<div class="modal-overlay" id="destModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeDestModal()">✕</button>
+    <img id="modalImg" src="" alt="" class="modal-img">
+    <div class="modal-body">
+      <h2 id="modalTitle"></h2>
+      <p class="modal-desc" id="modalDesc"></p>
+      <div class="modal-section" id="modalPlaces"></div>
+      <div class="modal-section"><h4>🍽️ מה כדאי לאכול</h4><p id="modalFood" style="color:var(--text2);line-height:1.8;"></p></div>
+      <div class="modal-tip" id="modalTip"></div>
+      <button class="btn-gold" id="modalBlogBtn">קראו כתבה מלאה →</button>
+      <button class="btn-outline" onclick="closeDestModal();goPage('home');setTimeout(function(){scrollToId('contact')},100)" style="margin-right:.8rem">צרו קשר להזמנה</button>
     </div>
   </div>
+</div>
 
-  <!-- MAIN -->
-  <div class="main-content">
-    <div id="statusBar" class="status-bar"></div>
-
-    <!-- DASHBOARD -->
-    <div class="admin-panel active" id="panel-dashboard">
-      <div class="page-header"><h2>📊 לוח בקרה</h2></div>
-      <div class="dash-grid">
-        <div class="dash-card"><div class="dash-icon">🌍</div><div class="dash-num">21</div><div class="dash-label">יעדים פעילים</div></div>
-        <div class="dash-card"><div class="dash-icon">🔥</div><div class="dash-num">10</div><div class="dash-label">דילים פעילים</div></div>
-        <div class="dash-card"><div class="dash-icon">📝</div><div class="dash-num">16</div><div class="dash-label">כתבות בלוג</div></div>
-        <div class="dash-card"><div class="dash-icon">🖼️</div><div class="dash-num">10</div><div class="dash-label">שקפי Hero</div></div>
+<!-- ====== DEAL MODAL ====== -->
+<div class="modal-overlay" id="dealModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('dealModal').classList.remove('open')">✕</button>
+    <img id="dealModalImg" src="" alt="" class="modal-img">
+    <div class="modal-body">
+      <h2 id="dealModalTitle"></h2>
+      <p id="dealModalDesc" style="color:var(--text2);line-height:1.8;margin-bottom:1rem;"></p>
+      <div id="dealModalDetails"></div>
+      <div class="modal-tip" id="dealModalNote"></div>
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;">
+        <span id="dealModalPrice" style="font-size:1.8rem;color:var(--gold);font-weight:700;"></span>
+        <span id="dealModalOld" style="text-decoration:line-through;color:#888;"></span>
       </div>
-      <div class="card">
-        <h3>⚡ פעולות מהירות</h3>
-        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
-          <button class="save-btn" onclick="showPanel('deals',document.querySelector('[onclick*=deals]'))">➕ הוסף דיל</button>
-          <button class="save-btn" onclick="showPanel('destinations',document.querySelector('[onclick*=destinations]'))">➕ הוסף יעד</button>
-          <button class="save-btn" onclick="window.open('index.html','_blank')">👁️ צפה באתר</button>
-        </div>
-      </div>
-      <div class="card">
-        <h3>📋 מצב Firebase</h3>
-        <div id="fbStatus" style="color:var(--text2);font-size:.9rem;">בודק חיבור...</div>
-      </div>
+      <button class="btn-gold" onclick="document.getElementById('dealModal').classList.remove('open');scrollToId('contact')">הזמינו עכשיו ←</button>
     </div>
+  </div>
+</div>
 
-    <!-- SITE INFO -->
-    <div class="admin-panel" id="panel-siteinfo">
-      <div class="page-header"><h2>🏠 פרטי האתר</h2></div>
-      <div class="card">
-        <h3>כותרת ומידע כללי</h3>
-        <div class="form-group"><label>שם הסוכנות</label><input id="si-name" value="Golden Tour"></div>
-        <div class="form-row">
-          <div class="form-group"><label>סלוגן ראשי</label><input id="si-slogan" value="החופשה המושלמת מתחילה כאן"></div>
-          <div class="form-group"><label>כתובת לוגו (URL)</label><input id="si-logo" value="logo.png"></div>
-        </div>
-        <div class="form-group"><label>טקסט Marquee (מופרד בפסיקים)</label><textarea id="si-marquee">✈️ טיסות זולות,🌍 יעדים ברחבי העולם,🏨 מלונות 5 כוכבים</textarea></div>
-        <button class="save-btn" onclick="saveSection('siteinfo')">💾 שמור שינויים</button>
-      </div>
-    </div>
+<!-- ====== ARTICLE MODAL ====== -->
+<div class="article-modal" id="articleModal">
+  <button class="article-close-btn" onclick="document.getElementById('articleModal').classList.remove('open')">✕</button>
+  <div class="article-inner">
+    <img id="articleHeroImg" src="" alt="" class="article-hero-img">
+    <div class="article-content" id="articleContent"></div>
+  </div>
+</div>
 
-    <!-- HERO -->
-    <div class="admin-panel" id="panel-hero">
-      <div class="page-header"><h2>🖼️ Hero Slider</h2><button class="save-btn" onclick="addHeroSlide()">➕ הוסף שקף</button></div>
-      <div id="heroList"></div>
-    </div>
-
-    <!-- DESTINATIONS -->
-    <div class="admin-panel" id="panel-destinations">
-      <div class="page-header"><h2>🌍 יעדים</h2><button class="save-btn" onclick="addDest()">➕ הוסף יעד</button></div>
-      <div class="card">
-        <h3>עריכת יעד</h3>
-        <div class="form-row">
-          <div class="form-group"><label>שם היעד</label><input id="d-name" placeholder="למשל: דובאי"></div>
-          <div class="form-group"><label>קטגוריה</label>
-            <select id="d-cat"><option>אירופה</option><option>מזרח</option><option>מערב</option><option>מזרח תיכון</option></select>
-          </div>
-        </div>
-        <div class="form-group"><label>קישור תמונה (Pexels URL)</label><input id="d-img" placeholder="https://images.pexels.com/..."></div>
-        <img id="d-img-preview" class="img-preview">
-        <div class="form-group"><label>תיאור קצר</label><textarea id="d-desc" placeholder="תיאור היעד..."></textarea></div>
-        <div class="form-group"><label>אוכל מומלץ</label><input id="d-food" placeholder="מנות מקומיות מומלצות"></div>
-        <div class="form-group"><label>טיפ מקצועי</label><input id="d-tip" placeholder="💡 טיפ לנוסע..."></div>
-        <button class="save-btn" onclick="saveDest()">💾 שמור יעד</button>
-      </div>
-      <div class="card">
-        <h3>יעדים קיימים</h3>
-        <div class="items-list" id="destList"></div>
-      </div>
-    </div>
-
-    <!-- DEALS -->
-    <div class="admin-panel" id="panel-deals">
-      <div class="page-header"><h2>🔥 דילים חמים</h2></div>
-      <div class="card">
-        <h3>הוספה/עריכת דיל</h3>
-        <div class="form-row">
-          <div class="form-group"><label>שם הדיל</label><input id="dl-name" placeholder="למשל: דובאי – יוקרה בצנצנת"></div>
-          <div class="form-group"><label>קטגוריה</label>
-            <select id="dl-cat"><option>אירופה</option><option>מזרח</option><option>מערב</option><option>מזרח תיכון</option></select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>מחיר (₪)</label><input id="dl-price" placeholder="₪3,490"></div>
-          <div class="form-group"><label>מחיר מקורי (₪)</label><input id="dl-old" placeholder="₪5,200"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>תג (Badge)</label><input id="dl-badge" placeholder="🔥 חם"></div>
-          <div class="form-group"><label>קישור תמונה</label><input id="dl-img" placeholder="https://images.pexels.com/..."></div>
-        </div>
-        <div class="form-group"><label>תיאור הדיל</label><textarea id="dl-desc"></textarea></div>
-        <div class="form-group"><label>הערה תחתית</label><input id="dl-note" placeholder="⏰ מחיר מוגבל..."></div>
-        <button class="save-btn" onclick="saveDeal()">💾 שמור דיל</button>
-      </div>
-      <div class="card">
-        <h3>דילים פעילים</h3>
-        <div class="items-list" id="dealList"></div>
-      </div>
-    </div>
-
-    <!-- BLOG -->
-    <div class="admin-panel" id="panel-blog">
-      <div class="page-header"><h2>📝 ניהול בלוג</h2></div>
-      <div class="card">
-        <h3>הוספת כתבה חדשה</h3>
-        <div class="form-row">
-          <div class="form-group"><label>כותרת הכתבה</label><input id="bl-title" placeholder="כותרת מושכת..."></div>
-          <div class="form-group"><label>קטגוריה</label>
-            <select id="bl-cat"><option>אירופה</option><option>מזרח</option><option>מערב</option><option>מזרח תיכון</option></select>
-          </div>
-        </div>
-        <div class="form-group"><label>קישור תמונה ראשית</label><input id="bl-img" placeholder="https://images.pexels.com/..."></div>
-        <div class="form-group"><label>תקציר (מה יופיע בכרטיס)</label><textarea id="bl-excerpt" style="min-height:70px"></textarea></div>
-        <div class="form-group"><label>תוכן מלא (HTML מותר)</label><textarea id="bl-content" style="min-height:200px" placeholder="&lt;h3&gt;כותרת&lt;/h3&gt;&lt;p&gt;תוכן...&lt;/p&gt;"></textarea></div>
-        <button class="save-btn" onclick="saveBlog()">💾 פרסם כתבה</button>
-      </div>
-      <div class="card">
-        <h3>כתבות קיימות</h3>
-        <div class="items-list" id="blogList"></div>
-      </div>
-    </div>
-
-    <!-- CONTACT -->
-    <div class="admin-panel" id="panel-contact">
-      <div class="page-header"><h2>📞 פרטי יצירת קשר</h2></div>
-      <div class="card">
-        <h3>עדכון פרטי קשר</h3>
-        <div class="form-row">
-          <div class="form-group"><label>שם איש הקשר</label><input id="ct-name" value="אדי"></div>
-          <div class="form-group"><label>מספר טלפון</label><input id="ct-phone" value="054-2386216"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>כתובת מייל</label><input id="ct-email" value="mt-edid@ortarad.ort.org.il"></div>
-          <div class="form-group"><label>כתובת פיזית</label><input id="ct-address" value="האלוף דוד 6, ראשון לציון"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>שעות א-ה</label><input id="ct-hours1" value="09:00 – 21:00"></div>
-          <div class="form-group"><label>שעות שישי</label><input id="ct-hours2" value="09:00 – 14:30"></div>
-        </div>
-        <div class="form-group"><label>קישור WhatsApp</label><input id="ct-wa" value="https://wa.me/+972542386216"></div>
-        <div class="form-group"><label>קישור Facebook</label><input id="ct-fb" value="https://www.facebook.com/GoldenTour.Edi/?locale=he_IL"></div>
-        <button class="save-btn" onclick="saveSection('contact')">💾 שמור פרטים</button>
-      </div>
-    </div>
-
-    <!-- FIREBASE CONFIG -->
-    <div class="admin-panel" id="panel-firebase">
-      <div class="page-header"><h2>🔥 הגדרות Firebase</h2></div>
-      <div class="card">
-        <h3>📋 הוראות חיבור Firebase</h3>
-        <div style="background:var(--dark3);border-radius:10px;padding:1.5rem;margin-bottom:1.5rem;border-right:4px solid var(--gold);">
-          <p style="color:var(--text2);line-height:2;font-size:.9rem;">
-            <strong style="color:var(--gold)">שלב 1:</strong> היכנסו ל-<a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a><br>
-            <strong style="color:var(--gold)">שלב 2:</strong> צרו פרויקט חדש → בחרו "Realtime Database"<br>
-            <strong style="color:var(--gold)">שלב 3:</strong> לחצו "Add App" → Web → קבלו את ה-Config<br>
-            <strong style="color:var(--gold)">שלב 4:</strong> הכניסו את ה-Config בשדות למטה ולחצו חבר<br>
-            <strong style="color:var(--gold)">שלב 5:</strong> שנו Rules ב-Database ל: <code style="background:#333;padding:.2rem .5rem;border-radius:4px">{"rules":{".read":true,".write":"auth != null"}}</code>
-          </p>
-        </div>
-        <div class="form-group"><label>apiKey</label><input id="fb-apiKey" placeholder="AIzaSy..."></div>
-        <div class="form-row">
-          <div class="form-group"><label>authDomain</label><input id="fb-authDomain" placeholder="project.firebaseapp.com"></div>
-          <div class="form-group"><label>databaseURL</label><input id="fb-databaseURL" placeholder="https://project.firebaseio.com"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>projectId</label><input id="fb-projectId" placeholder="my-project"></div>
-          <div class="form-group"><label>storageBucket</label><input id="fb-storageBucket" placeholder="project.appspot.com"></div>
-        </div>
-        <div class="form-group"><label>messagingSenderId</label><input id="fb-messagingSenderId" placeholder="123456789"></div>
-        <div class="form-group"><label>appId</label><input id="fb-appId" placeholder="1:123:web:abc"></div>
-        <button class="save-btn" onclick="connectFirebase()">🔥 חבר Firebase</button>
-      </div>
-    </div>
-
-  </div><!-- /main-content -->
-</div><!-- /admin-wrap -->
+<!-- ====== POLICY MODAL ====== -->
+<div class="policy-modal" id="policyModal">
+  <div class="policy-inner" id="policyContent"></div>
+</div>
 
 <script>
-// ====== CONFIG ======
-var ADMIN_PASSWORD = 'goldentour2025'; // ← שנו את הסיסמה כאן!
-var db = null;
-var isConnected = false;
+// ============================================================
+// ====================== DATA ================================
+// ============================================================
 
-// ====== LOGIN ======
-function doLogin() {
+var heroSlides = [
+  {city:"דובאי",img:"https://images.pexels.com/photos/1470502/pexels-photo-1470502.jpeg",sub:"מגדלים, מדבר ויוקרה ללא גבולות"},
+  {city:"מונטנגרו",img:"https://images.pexels.com/photos/3601425/pexels-photo-3601425.jpeg",sub:"טבע פראי ועיירות קסומות"},
+  {city:"תאילנד",img:"https://images.pexels.com/photos/1031659/pexels-photo-1031659.jpeg",sub:"מקדשים, חופים ואוכל מדהים"},
+  {city:"ברצלונה",img:"https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg",sub:"ארכיטקטורה, תרבות וים תיכון"},
+  {city:"פריז",img:"https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg",sub:"עיר האהבה, אמנות ואופנה"},
+  {city:"יפן",img:"https://images.pexels.com/photos/590478/pexels-photo-590478.jpeg",sub:"מסורת עתיקה ומודרניות עתידית"},
+  {city:"בודפשט",img:"https://images.pexels.com/photos/1758533/pexels-photo-1758533.jpeg",sub:"הפנינה של אירופה המרכזית"},
+  {city:"בוקרשט",img:"https://images.pexels.com/photos/3757144/pexels-photo-3757144.jpeg",sub:"מסתורין, היסטוריה ואדריכלות"},
+  {city:"באקו",img:"https://images.pexels.com/photos/4388167/pexels-photo-4388167.jpeg",sub:"עיר עתיקה בלב אסיה"},
+  {city:"פראג",img:"https://images.pexels.com/photos/2346216/pexels-photo-2346216.jpeg",sub:"עיר הזהב שמחכה לכם"}
+];
+
+var destinations = [
+  {id:1,name:"דובאי",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/1470502/pexels-photo-1470502.jpeg",desc:"דובאי היא עיר העתיד – שם שמים גורדי ורקיע פוגשים מדבר זהוב ומסחר עולמי. חוויה של פאר, ספורט אתגרי, קניות אינסופיות ואוכל בינלאומי.",places:[{n:"בורג' ח'ליפה",t:"המבנה הגבוה בעולם – 828 מ'. הנוף ממנו הוא פשוט עוצר נשימה."},{n:"מדינה ג'וממרה",t:"שוק עתיק יומין בעיצוב ערבי אותנטי עם תעלות ומסעדות."},{n:"Safari המדבר",t:"רכיבה על חולות, גמלים, ארוחת ערב ועיין הכוכבים."},{n:"Palm Jumeirah",t:"האי המלאכותי המפורסם בעולם עם בתי מלון יוקרתיים."},{n:"מוזיאון העתיד",t:"מבנה אייקוני עם תצוגות טכנולוגיה של 2071."}],food:"חובה לנסות Al Harees, Shawarma רחוב אמיתי, ומאכלי ים טריים.",tip:"💡 הגיעו בנובמבר–מרץ – הטמפרטורות נעימות בין 20–28 מעלות."},
+  {id:2,name:"מונטנגרו",cat:"אירופה",img:"https://images.pexels.com/photos/3601425/pexels-photo-3601425.jpeg",desc:"מונטנגרו היא אחת היעדים הנסתרים של הבלקן – עם הרים מושלגים, ימת קוטור הכחולה ועיירות ימי ביניים.",places:[{n:"קוטור העתיקה",t:"חומות ימי ביניים, כנסיות, ומרפסות עם נוף לפיורד."},{n:"דוּרמיטור",t:"פארק לאומי עם שלג, קניונים וספורט אתגרי."},{n:"בוּדבה",t:"עיר חוף עתיקה עם מוזיקה חיה ומסעדות ים."},{n:"ימת סקוטאר",t:"הימה הגדולה בבלקן – שלווה, דייג, ואווירה אחרת."},{n:"פֶרסט",t:"ריבייה מרהיבה עם חופים צלולים."}],food:"כבש על הגריל, גבינת קשקבל, ויין Vranac.",tip:"💡 ביקור אידיאלי: מאי–ספטמבר."},
+  {id:3,name:"תאילנד",cat:"מזרח",img:"https://images.pexels.com/photos/1031659/pexels-photo-1031659.jpeg",desc:"תאילנד מציעה שילוב ייחודי של מקדשים מוזהבים, חופים טרופיים כחולים, שוקי לילה עמוסים ואנשים חייכניים.",places:[{n:"קוה סמואי",t:"חוף עם מים תכולים, האמאק בין דקלים ואווירת גן עדן."},{n:"ואט פו",t:"חמישה מאות שנה של היסטוריה בפגודות מוזהבות."},{n:"צ'ינג מאי",t:"עיר הפילים, הטרקים ביערות ומסורת ייחודית."},{n:"שוק לילה בנגקוק",t:"Chatuchak – 15,000 דוכנים, אוכל רחוב ואופנה מקומית."},{n:"קרבי",t:"צוקי סיד מרהיבים, קיאקים ואיי פי פי."}],food:"Pad Thai, Tom Yum, Mango Sticky Rice, ומאכלי ים טריים.",tip:"💡 עונת החורף (נובמבר–פברואר) היא העונה הטובה."},
+  {id:4,name:"ברצלונה",cat:"אירופה",img:"https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg",desc:"ברצלונה היא עיר שכובשת את הלב – עם ארכיטקטורה של גאודי, חופים יפים, חיי לילה אגדיים ואוכל קטלני.",places:[{n:"הסגרדה פמיליה",t:"כנסיייתו המפורסמת של גאודי."},{n:"פארק גוול",t:"גן פנטסטי עם פסאי צבעוני ונוף פנורמי."},{n:"לה ראמבלה",t:"השדרה החיה של ברצלונה."},{n:"שכונת גוטיק",t:"בניינים בני מאות שנים ורחובות אבן צרים."},{n:"חוף ברצלונטה",t:"חוף עירוני תוסס עם ספורט ים."}],food:"פאייה אמיתית, פן קון טומאטה, טאפאס וסנגריה.",tip:"💡 הגיעו במאי–יוני. רכשו כרטיסים לסגרדה פמיליה מראש!"},
+  {id:5,name:"פריז",cat:"אירופה",img:"https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg",desc:"פריז היא עיר שאי אפשר להגדיר במילים – מגדל אייפל בשעת שקיעה, קפה בוקר בצד הסן, ויין בגן.",places:[{n:"מגדל אייפל",t:"חובה – אבל עלו אליו בשקיעה או בלילה."},{n:"המוזיאון הלובר",t:"40,000 יצירות – תכננו לפחות חצי יום."},{n:"מונמארטר",t:"שכונת האמנים והאווירה של שנות ה-20."},{n:"שדרות השאנזה ליזה",t:"קניות, קפה ואווירה צרפתית."},{n:"שייט על הסן",t:"ספינות – שייט רומנטי בלב העיר."}],food:"קרואסון בוקר, קישה לוריין, קרפ נוטלה, גבינות צרפתיות.",tip:"💡 הימנעו מאוגוסט. מרץ–יוני מושלם."},
+  {id:6,name:"יפן",cat:"מזרח",img:"https://images.pexels.com/photos/590478/pexels-photo-590478.jpeg",desc:"יפן היא עולם אחר – שבו הכול מדויק, נקי ומסודר, ובה בעת מלא בפלאים.",places:[{n:"טוקיו",t:"מטרופוליס עם שכונות שונות לחלוטין."},{n:"קיוטו",t:"המקדשים הזהובים, הגייישות ועונת הדובדבן."},{n:"הר פוג'י",t:"עלייה או צפייה – חוויה שלא נשכחת."},{n:"אוסקה",t:"מטבח, חיי לילה, דוטונבורי."},{n:"נארה",t:"צביים קדושים חופשיים ברחובות."}],food:"ראמן, סושי, טמפורה, טאקויאקי, מטצ'ה.",tip:"💡 מרץ–אפריל הוא עונת הדובדבן. הזמינו מוקדם."},
+  {id:7,name:"בודפשט",cat:"אירופה",img:"https://images.pexels.com/photos/1758533/pexels-photo-1758533.jpeg",desc:"בודפשט חלוקה לשני עולמות: בודה ההיסטורית שמעל ההר ופשט הצעירה שמרקידה לילה שלם.",places:[{n:"מרחצאות סצ'ניה",t:"מרחץ תרמי פעיל מ-1913."},{n:"מגדל הפרלמנט",t:"אחד היפים בעולם."},{n:"שכונת היהודים",t:"רוהברק, ברים, גרפיטי ותרבות."},{n:"מצודת בודה",t:"ארמון, חומות ונוף מדהים."},{n:"שוק הגדול",t:"פאפריקה, סלמי, מלאכת יד."}],food:"גולש הונגרי, Langos, ובוגאצה.",tip:"💡 אפריל–יוני ואוקטובר הם מצוינים."},
+  {id:8,name:"בוקרשט",cat:"אירופה",img:"https://images.pexels.com/photos/3757144/pexels-photo-3757144.jpeg",desc:"בוקרשט – הפריז של המזרח. עיר מלאה בסתירות: ארמונות עצומים לצד גרפיטי מהפכני.",places:[{n:"ארמון הפרלמנט",t:"גדול מהפנטגון – 1,100 חדרים."},{n:"שכונת הרהוב",t:"ברים, גרפיטי, חנויות."},{n:"Old Town",t:"לב העיר ההיסטורי."},{n:"מוזיאון האיכרים",t:"300 בתי עץ אותנטיים."},{n:"ארמון שפרין",t:"ארמון חורף עם גן מרהיב."}],food:"Sarmale, Mici, Cozonac.",tip:"💡 אפריל–ספטמבר הוא זמן מושלם."},
+  {id:9,name:"באקו",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/4388167/pexels-photo-4388167.jpeg",desc:"באקו היא פנינה שרק מתחילה לקבל את תשומת הלב שהיא ראויה לה.",places:[{n:"עיר העתיקה",t:"חומות, מסגדים, ורחובות אבן בן 2,000 שנה."},{n:"מגדל הבתולה",t:"סמל העיר – נוף פנורמי."},{n:"היידר אלייב סנטר",t:"ארכיטקטורה של זאהה חדיד."},{n:"Baku Boulevard",t:"טיילת הים הארוכה."},{n:"כפר לד'ז'",t:"כפר הרים עם שטיחים ואמנות."}],food:"Plov, Dushbara, Qutab.",tip:"💡 אפריל–יוני ואוקטובר–נובמבר מושלמים."},
+  {id:10,name:"פראג",cat:"אירופה",img:"https://images.pexels.com/photos/2346216/pexels-photo-2346216.jpeg",desc:"פראג היא עיר שמרגישה כאילו נבנתה מסיפור אגדה – גשרים קסומים, מגדלים, תאורת גז.",places:[{n:"גשר קארל",t:"גשר עתיק מהמאה ה-14 עם 30 פסלי קדושים."},{n:"השעון האסטרונומי",t:"כל שעה מופע עם פסלים."},{n:"מצודת פראג",t:"קתדרלה, ארמון ונוף על העיר."},{n:"Petřín Hill",t:"גבעה ירוקה עם מגדל תצפית."},{n:"Vinohrady",t:"שכונת בוהמה מודרנית."}],food:"Svíčková, Trdelník, ובירה צ'כית הטובה בעולם.",tip:"💡 דצמבר – שוק חג המולד מהיפים בעולם."},
+  {id:11,name:"רומא",cat:"אירופה",img:"https://images.pexels.com/photos/532263/pexels-photo-532263.jpeg",desc:"רומא היא ספר היסטוריה פתוח – כל אבן, פסל ומזרקה מספרים 3,000 שנה.",places:[{n:"הקולוסאום",t:"מדהים גם אחרי 2,000 שנה."},{n:"מזרקת הטרווי",t:"הטקס הכי רומנטי."},{n:"הפנתיאון",t:"כיפה אדריכלית מהמאה ה-2."},{n:"ותיקן",t:"חצי יום לכנסיית פטרוס + מוזיאונים."},{n:"ויה אפיה",t:"הכביש הרומי העתיק."}],food:"Cacio e Pepe, Carbonara אמיתית, Supplì, גלאטו.",tip:"💡 אפריל–מאי וספטמבר–אוקטובר."},
+  {id:12,name:"אמסטרדם",cat:"אירופה",img:"https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg",desc:"אמסטרדם היא עיר שחוגגת חיים – תעלות, אופניים, מוזיאונים עולמיים.",places:[{n:"מוזיאון van Gogh",t:"90,000 יצירות."},{n:"Rijksmuseum",t:"רמברנדט, ורמיר."},{n:"Jordaan",t:"גלריות, שוקי אנטיקות."},{n:"Anne Frank Huis",t:"חוויה מרגשת ומחייבת."},{n:"Vondelpark",t:"פארק ענק עם מוזיקה."}],food:"Stroopwafels, Haring, פטטס פריט עם מיונז.",tip:"💡 אפריל – פריחת הצבעונים בקיוקנהוף."},
+  {id:13,name:"מרוקו",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/4388164/pexels-photo-4388164.jpeg",desc:"מרוקו היא מסע חושים מלא – שווקים צבעוניים, מדבר ענק, ריח תבלינים.",places:[{n:"מדינת פֶס",t:"המדינה הכי ישנה ביותר."},{n:"מסכת מראקש",t:"Djemaa el-Fna – קסמים ומוזיקה."},{n:"מדבר השחרה",t:"שינה באוהל, גמלים ושמיים."},{n:"חופי אסילה",t:"עיר חוף לבנה עם ציורי קיר."},{n:"גן מג'ורל",t:"גן צבעוני בכחול ברברי."}],food:"Tagine, Couscous, Harira, Pastilla.",tip:"💡 מרץ–מאי ואוקטובר–נובמבר."},
+  {id:14,name:"הודו",cat:"מזרח",img:"https://images.pexels.com/photos/1007426/pexels-photo-1007426.jpeg",desc:"הודו היא יבשת שלמה בפני עצמה – מוצפת בצבע, ריח, קדושה, אוכל, מוזיקה וניגודים.",places:[{n:"הטאג' מאהל",t:"ביקרו בזריחה לחוויה אמיתית."},{n:"ג'ייפור",t:"העיר הוורודה."},{n:"ואראנאסי",t:"עיר הקדושה על הגנגס."},{n:"קרלה",t:"חופים קסומים ואגמי backwater."},{n:"גואה",t:"חופים, מסיבות, פורטוגזית."}],food:"Butter Chicken, Biryani, Samosas, Chai.",tip:"💡 נובמבר–פברואר הוא הזמן הטוב ביותר."},
+  {id:15,name:"יוון",cat:"אירופה",img:"https://images.pexels.com/photos/1285625/pexels-photo-1285625.jpeg",desc:"יוון היא עריסת הציוויליזציה המערבית – עם אקרופוליס מלמעלה, שקיעות בסנטוריני.",places:[{n:"סנטוריני",t:"כנסיות כחול-לבן ושקיעות אגדיות."},{n:"מיקונוס",t:"רחובות לבנים ומסיבות ים."},{n:"האקרופוליס",t:"הפרתנון – 2,500 שנה ועדיין עומד."},{n:"קורפו",t:"ורנציה יוונית."},{n:"רודוס",t:"עיר ביניים שלמה בתוך חומות."}],food:"Moussaka, Souvlaki, Spanakopita, פטה.",tip:"💡 מאי–יוני וספטמבר–אוקטובר."},
+  {id:16,name:"ניו יורק",cat:"מערב",img:"https://images.pexels.com/photos/凌晨/pexels-photo.jpeg",desc:"ניו יורק היא עיר שאף פעם לא ישנה – סנטרל פארק, ברודווי, וחיים שלמים בכל בלוק.",places:[{n:"סנטרל פארק",t:"341 הקטרים של שקט."},{n:"מוזיאון MET",t:"5 מיליון יצירות."},{n:"Times Square",t:"כאוס מלהיב."},{n:"Dumbo Brooklyn",t:"נוף גשרי מנהטן."},{n:"High Line",t:"גן ירוק על מסילת ברזל."}],food:"Brooklyn Pizza, פסטרמי, Bagel with Lox.",tip:"💡 ספטמבר–נובמבר מושלם."},
+  {id:17,name:"מיאמי",cat:"מערב",img:"https://images.pexels.com/photos/凌晨2/pexels-photo.jpeg",desc:"מיאמי היא קוקטייל של שמש, מוזיקה לטינית, גלים גדולים ואמנות.",places:[{n:"South Beach",t:"חוף אייקוני עם Art Deco."},{n:"Wynwood Walls",t:"גלריה פתוחה ענקית."},{n:"Little Havana",t:"קהוה קובנית ודומינו."},{n:"Everglades",t:"ספארי בגומחת המים."},{n:"Vizcaya Museum",t:"ארמון אירופי על שפת הים."}],food:"Cubanos, Ceviche, Stone Crab, Key Lime Pie.",tip:"💡 נובמבר–אפריל הוא עונת הטובה."},
+  {id:18,name:"קייפ טאון",cat:"מערב",img:"https://images.pexels.com/photos/1434580/pexels-photo-1434580.jpeg",desc:"קייפ טאון היא אחת הערים היפות בעולם – הר השולחן, כרמי ענבים, חופים.",places:[{n:"הר השולחן",t:"עלו ברגל או בטלפריק."},{n:"Boulders Beach",t:"חוף עם מושבת פינגווינים."},{n:"V&A Waterfront",t:"נמל ישן עם שווקים."},{n:"Cape Point",t:"קצה העולם הישן."},{n:"Cape Winelands",t:"Stellenbosch + Franschhoek."}],food:"Braai, Bobotie, Koeksister.",tip:"💡 נובמבר–מרץ הוא המושלם."},
+  {id:19,name:"באקו",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/4388167/pexels-photo-4388167.jpeg",desc:"יעד מרהיב שמשלב היסטוריה, ארכיטקטורה מודרנית וריבה ים הכספי.",places:[{n:"עיר העתיקה",t:"אתר UNESCO."},{n:"מגדל הבתולה",t:"סמל העיר."},{n:"Heydar Aliyev Center",t:"ארכיטקטורה של זאהה חדיד."},{n:"Baku Boulevard",t:"טיילת הים."},{n:"כפר לאהיג",t:"שטיחים ואומנות."}],food:"Plov, Qutab, Dushbara.",tip:"💡 אפריל–יוני מושלמים."},
+  {id:20,name:"קוסטה ריקה",cat:"מערב",img:"https://images.pexels.com/photos/6328924/pexels-photo-6328924.jpeg",desc:"קוסטה ריקה היא גן עדן ירוק – 25% ממנה פארקים לאומיים.",places:[{n:"עמק ארנל",t:"הר גועש פעיל."},{n:"קוץ' טורטוגרו",t:"הטלת ביצים של צבי ים."},{n:"Monte Verde",t:"יערות ענן וגשרים תלויים."},{n:"Santa Teresa",t:"גלישת גלים ויוגה."},{n:"Corcovado",t:"הפארק הביולוגי העשיר."}],food:"Gallo Pinto, Casado.",tip:"💡 דצמבר–אפריל הוא עונה יבשה."},
+  {id:21,name:"גרנדה",cat:"אירופה",img:"https://images.pexels.com/photos/1388035/pexels-photo-1388035.jpeg",desc:"גרנדה היא נסיכה של ספרד – מצודת אלהמברה, טפאס ב-1 אירו ושמיים כחולים.",places:[{n:"מצודת אלהמברה",t:"הזמינו 3 חודשים מראש."},{n:"שכונת אלבייסין",t:"בתים לבנים עם נוף לאלהמברה."},{n:"Sacromonte",t:"פלמנקו אמיתי."},{n:"שוק הפאיסנריה",t:"תבלינים ובדים."},{n:"שיירה נבדה",t:"סקי 50 דקות מהעיר."}],food:"Tapas, Tortilla Española, Jamón Ibérico.",tip:"💡 מרץ–מאי ואוקטובר."}
+];
+
+var deals = [
+  {id:1,name:"דובאי – יוקרה בצנצנת",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/1470502/pexels-photo-1470502.jpeg",badge:"🔥 חם",price:"₪3,490",old:"₪5,200",desc:"7 לילות בדובאי כולל טיסה, מלון 5 כוכבים, סיור במדבר וכניסה לברג' ח'ליפה.",details:"<p><b>✈️</b> טיסה ישירה<br><b>🏨</b> מלון 5★<br><b>🗓️</b> 7 לילות<br><b>🍽️</b> ארוחת בוקר</p>",note:"⏰ מחיר מוגבל – עד סוף החודש!"},
+  {id:2,name:"פריז – חופשה רומנטית",cat:"אירופה",img:"https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg",badge:"♥ זוגות",price:"₪2,890",old:"₪4,100",desc:"5 לילות בפריז כולל טיסה, מלון בוטיק ליד האייפל, שייט על הסן.",details:"<p><b>✈️</b> טיסה ישירה<br><b>🏨</b> מלון 4★<br><b>🗓️</b> 5 לילות<br><b>⛵</b> שייט על הסן</p>",note:"💡 מומלץ: אפריל–יוני"},
+  {id:3,name:"תאילנד – חופשה טרופית",cat:"מזרח",img:"https://images.pexels.com/photos/1031659/pexels-photo-1031659.jpeg",badge:"🌴 טרופי",price:"₪4,290",old:"₪6,500",desc:"10 לילות תאילנד: בנגקוק 3 לילות + קוה סמואי 7 לילות.",details:"<p><b>✈️</b> טיסה + פנימית<br><b>🏨</b> 4★ + 5★ Pool Villa<br><b>🗓️</b> 10 לילות</p>",note:"✅ ניתן להתאים תאריכים"},
+  {id:4,name:"ברצלונה – ספרדית בשמש",cat:"אירופה",img:"https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg",badge:"🌞 קיץ",price:"₪2,490",old:"₪3,800",desc:"5 לילות ברצלונה כולל טיסה, מלון 4 כוכבים מרכזי, כניסה לאתרים.",details:"<p><b>✈️</b> טיסה ישירה<br><b>🏨</b> מלון 4★<br><b>🗓️</b> 5 לילות<br><b>🎫</b> כניסה לאתרים</p>",note:"🌊 קרוב לחוף"},
+  {id:5,name:"יפן – מסע ייחודי",cat:"מזרח",img:"https://images.pexels.com/photos/590478/pexels-photo-590478.jpeg",badge:"🌸 פריחה",price:"₪6,990",old:"₪9,500",desc:"12 לילות יפן: טוקיו, קיוטו, אוסקה ונארה. הכל כלול.",details:"<p><b>✈️</b> טיסה ישירה<br><b>🚅</b> JR Pass 14 יום<br><b>🏨</b> 4★<br><b>🗓️</b> 12 לילות</p>",note:"🌸 מרץ–אפריל – עונת הדובדבן"},
+  {id:6,name:"בודפשט – אירופה מרכזית",cat:"אירופה",img:"https://images.pexels.com/photos/1758533/pexels-photo-1758533.jpeg",badge:"💎 ערך",price:"₪1,990",old:"₪2,900",desc:"4 לילות בבודפשט כולל טיסה, מלון 4 כוכבים וכניסה למרחצאות.",details:"<p><b>✈️</b> טיסה<br><b>🏨</b> מלון 4★<br><b>🗓️</b> 4 לילות<br><b>🛁</b> כניסה למרחצאות</p>",note:"💰 אחד היעדים הזולים באירופה"},
+  {id:7,name:"מרוקו – חופשת שחרית",cat:"מזרח תיכון",img:"https://images.pexels.com/photos/4388164/pexels-photo-4388164.jpeg",badge:"🐪 מדבר",price:"₪3,290",old:"₪4,700",desc:"8 לילות מרוקו: מראקש, פֶס ולילה במדבר השחרה.",details:"<p><b>✈️</b> טיסה<br><b>🏨</b> ריאד מסורתי<br><b>🌙</b> לינה בכחילה<br><b>🗓️</b> 8 לילות</p>",note:"✨ חוויה שתזכרו לכל החיים"},
+  {id:8,name:"יוון – אסקפיזם ים",cat:"אירופה",img:"https://images.pexels.com/photos/1285625/pexels-photo-1285625.jpeg",badge:"🏝️ אי",price:"₪2,790",old:"₪4,100",desc:"6 לילות יוון: 3 בסנטוריני + 3 במיקונוס.",details:"<p><b>✈️</b> טיסה + פנימיות<br><b>🚢</b> מעבורת<br><b>🏨</b> נוף לים<br><b>🗓️</b> 6 לילות</p>",note:"📸 החופשה שתשנה את האינסטגרם"},
+  {id:9,name:"ניו יורק – עיר שלא ישנה",cat:"מערב",img:"https://images.pexels.com/photos/凌晨_ny/pexels-photo.jpeg",badge:"🗽 אייקון",price:"₪5,490",old:"₪7,800",desc:"7 לילות ניו יורק: מנהטן, ברוקלין.",details:"<p><b>✈️</b> טיסה ישירה<br><b>🏨</b> מלון 4★<br><b>🗓️</b> 7 לילות<br><b>🎫</b> City Pass</p>",note:"🎭 ברודווי לא כלול"},
+  {id:10,name:"קייפ טאון – אפריקה אחרת",cat:"מערב",img:"https://images.pexels.com/photos/1434580/pexels-photo-1434580.jpeg",badge:"🏔️ הר",price:"₪4,890",old:"₪6,900",desc:"9 לילות קייפ טאון + Safari חד-יומי.",details:"<p><b>✈️</b> טיסה<br><b>🏨</b> נוף להר השולחן<br><b>🦁</b> Safari<br><b>🗓️</b> 9 לילות</p>",note:"🌍 חוויית אפריקה האמיתית"}
+];
+
+var blogPosts = [
+  {id:1,cat:"אירופה",title:"ברצלונה – המדריך המלא לחופשה מושלמת",img:"https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg",excerpt:"ברצלונה היא אחת הערים הכי שוות בעולם – ים, אדריכלות, אוכל, מוזיקה. הנה כל מה שצריך לדעת.",content:`<span class="article-tag-badge">אירופה</span><h1>ברצלונה – המדריך המלא</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>ברצלונה פועמת 24 שעות ביממה. בבוקר – קפה בשוק לה בוקריה. בצהריים – חוף ברצלונטה. בלילה – טאפאס.</p><h3>📍 חובה לבקר</h3><ul><li><strong>הסגרדה פמיליה</strong> – הזמינו 3 חודשים מראש.</li><li><strong>פארק גואל</strong> – הגיעו בשעה 8 בבוקר.</li><li><strong>לה ראמבלה</strong> – השדרה הגדולה.</li><li><strong>שכונת גוטיק</strong> – רחובות אבן צרים.</li><li><strong>חוף ברצלונטה</strong> – ספורט ים ושקיעות.</li></ul><div class="tip-box"><p>💡 אל תאכלו בלה ראמבלה – כנסו לרחובות הצדדיים.</p></div><div class="article-cta"><h3>✈️ רוצים לנסוע?</h3><p>אדי יבנה לכם חבילה מושלמת.</p><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:2,cat:"אירופה",title:"פריז – המדריך המלא לסיטי טריפ מושלם",img:"https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg",excerpt:"פריז היא עיר שצריך לחוות, לא לצלם. הנה איך לנסוע כמו מקומי.",content:`<span class="article-tag-badge">אירופה</span><h1>פריז – סיטי טריפ מושלם</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>פריז היא עיר שאפשר לבקר בה עשר פעמים ובכל פעם לגלות שכבה חדשה.</p><h3>📍 חובה לבקר</h3><ul><li><strong>מגדל אייפל</strong> – עלו בשקיעה.</li><li><strong>מוזיאון הלובר</strong> – חצי יום לפחות.</li><li><strong>מונמארטר</strong> – שכונת האמנים.</li><li><strong>שייט על הסן</strong> – רומנטי בלילה.</li></ul><div class="tip-box"><p>💡 פיקניק בגני לוקסמבורג – זו פריז האמיתית.</p></div><div class="article-cta"><h3>✈️ חולמים על פריז?</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:3,cat:"אירופה",title:"בודפשט – היהלום הנסתר של אירופה",img:"https://images.pexels.com/photos/1758533/pexels-photo-1758533.jpeg",excerpt:"בודפשט היא אחת הבירות הזולות, היפות והמגוונות באירופה.",content:`<span class="article-tag-badge">אירופה</span><h1>בודפשט – היהלום הנסתר</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>בודפשט מפתיעה – מגיעים לשלושה ימים ורוצים להישאר שבועיים.</p><h3>📍 חובה לבקר</h3><ul><li><strong>מרחצאות סצ'ניה</strong> – מרחץ תרמי מ-1913.</li><li><strong>הפרלמנט</strong> – אחד היפים בעולם.</li><li><strong>שכונת היהודים</strong> – ברים וגרפיטי.</li></ul><div class="tip-box"><p>💡 דצמבר – שוק חג המולד מהיפים באירופה.</p></div><div class="article-cta"><h3>✈️ מוכנים לבודפשט?</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:4,cat:"אירופה",title:"פראג – 3 ימים בעיר הקסמים",img:"https://images.pexels.com/photos/2346216/pexels-photo-2346216.jpeg",excerpt:"פראג היא עיר אגדה – גשרים, מגדלים, בירה וגשם.",content:`<span class="article-tag-badge">אירופה</span><h1>פראג – עיר הקסמים</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>פראג היא כמו ספר אגדות שהתממש.</p><h3>📍 חובה לבקר</h3><ul><li><strong>גשר קארל</strong> – בקרו ב-6 בבוקר.</li><li><strong>השעון האסטרונומי</strong> – כל שעה מופע.</li><li><strong>מצודת פראג</strong> – קתדרלה מרהיבה.</li></ul><div class="tip-box"><p>💡 דצמבר = שוק חג המולד בכיכרות.</p></div><div class="article-cta"><h3>✈️ פראג מחכה לכם</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:5,cat:"אירופה",title:"בוקרשט – הפריז של המזרח",img:"https://images.pexels.com/photos/3757144/pexels-photo-3757144.jpeg",excerpt:"בוקרשט מפתיעה – ארמונות ענקיים, שכונות בוהמיות, ואנרגיה צעירה.",content:`<span class="article-tag-badge">אירופה</span><h1>בוקרשט – הפריז של המזרח</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>בוקרשט זוכה לפחות אהבה ממה שהיא ראויה לה.</p><div class="article-cta"><h3>✈️ מוכנים לגלות?</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:6,cat:"אירופה",title:"מונטנגרו – טבע פרוע בלב הבלקן",img:"https://images.pexels.com/photos/3601425/pexels-photo-3601425.jpeg",excerpt:"מונטנגרו היא הגבי של הים האדריאטי.",content:`<span class="article-tag-badge">אירופה</span><h1>מונטנגרו – טבע פרוע</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>מונטנגרו היא גן עדן שעוד לא קנה שם בעולם הגדול. ומזל שלכם.</p><div class="article-cta"><h3>✈️ מונטנגרו מחכה</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:7,cat:"אירופה",title:"רומא – 5 ימים בנצח שהפך לעיר",img:"https://images.pexels.com/photos/532263/pexels-photo-532263.jpeg",excerpt:"רומא היא ספר היסטוריה פתוח.",content:`<span class="article-tag-badge">אירופה</span><h1>רומא – 5 ימים בנצח</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>קפה עמד בבוקר, גלאטו בצהריים, פסטה אמיתית בערב – וביניהם 3,000 שנה.</p><div class="article-cta"><h3>✈️ רומא עם Golden Tour</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:8,cat:"אירופה",title:"אמסטרדם – תעלות, אופניים ויצירה",img:"https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg",excerpt:"אמסטרדם היא עיר שאוהבת חיים.",content:`<span class="article-tag-badge">אירופה</span><h1>אמסטרדם – תעלות ואופניים</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>שכרו אופניים ביום הראשון. זה הדרך היחידה לחיות אמסטרדם.</p><div class="article-cta"><h3>✈️ אמסטרדם עם Golden Tour</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:9,cat:"מזרח",title:"תאילנד – החופשה הטרופית שתשנה אתכם",img:"https://images.pexels.com/photos/1031659/pexels-photo-1031659.jpeg",excerpt:"תאילנד היא יעד שנכנס לדם.",content:`<span class="article-tag-badge">מזרח</span><h1>תאילנד – החופשה הטרופית</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>כל אחד שחוזר משם אומר: "תכף חוזר".</p><div class="article-cta"><h3>✈️ תאילנד עם Golden Tour</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:10,cat:"מזרח",title:"יפן – מסע בין עתיד ועבר",img:"https://images.pexels.com/photos/590478/pexels-photo-590478.jpeg",excerpt:"יפן היא כוכב לכת אחר.",content:`<span class="article-tag-badge">מזרח</span><h1>יפן – מסע בין עתיד ועבר</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>יפן היא לא בסתם יעד – היא מסע. שם עולמות מתנגשים.</p><div class="article-cta"><h3>✈️ יפן עם Golden Tour</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:11,cat:"מערב",title:"ניו יורק – שבוע בעיר שלא ישנה",img:"https://images.pexels.com/photos/凌晨/pexels-photo.jpeg",excerpt:"ניו יורק היא עיר שמוכיחה שלחיות בגדול זה אפשרי.",content:`<span class="article-tag-badge">מערב</span><h1>ניו יורק – עיר שלא ישנה</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>ניו יורק היא לא עיר – היא עולם בתוך עיר.</p><div class="article-cta"><h3>✈️ ניו יורק עם Golden Tour</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:12,cat:"מערב",title:"מיאמי – שמש, גלים ואמנות",img:"https://images.pexels.com/photos/凌晨2/pexels-photo.jpeg",excerpt:"מיאמי היא פסטיבל חיים ללא הפסקה.",content:`<span class="article-tag-badge">מערב</span><h1>מיאמי – שמש וגלים</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>מיאמי היא קוקטייל של שמש, מוזיקה לטינית וגלים.</p><div class="article-cta"><h3>✈️ מיאמי עם Golden Tour</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:13,cat:"מזרח תיכון",title:"באקו – האלמוגים של אסיה",img:"https://images.pexels.com/photos/4388167/pexels-photo-4388167.jpeg",excerpt:"באקו היא אחת ההפתעות הגדולות ביותר.",content:`<span class="article-tag-badge">מזרח תיכון</span><h1>באקו – האלמוגים של אסיה</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>באקו זוכה לתשומת לב גוברת – ובצדק.</p><div class="article-cta"><h3>✈️ באקו עם Golden Tour</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:14,cat:"מזרח תיכון",title:"דובאי – המדריך המושלם ל-7 ימים",img:"https://images.pexels.com/photos/1470502/pexels-photo-1470502.jpeg",excerpt:"דובאי היא יעד שמפתיע כל פעם מחדש.",content:`<span class="article-tag-badge">מזרח תיכון</span><h1>דובאי – 7 ימים מושלמים</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>דובאי בנתה את עצמה מחול מדברי לעיר עתיד בפחות מ-50 שנה.</p><div class="article-cta"><h3>✈️ דובאי עם Golden Tour</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:15,cat:"מזרח תיכון",title:"מרוקו – מסע של חושים",img:"https://images.pexels.com/photos/4388164/pexels-photo-4388164.jpeg",excerpt:"מרוקו היא מסע שנכנס לגוף ולנשמה.",content:`<span class="article-tag-badge">מזרח תיכון</span><h1>מרוקו – מסע של חושים</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>מרוקו היא אחד היעדים שמשאירים חותם עמוק ביותר.</p><div class="article-cta"><h3>✈️ מרוקו עם Golden Tour</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`},
+  {id:16,cat:"מזרח",title:"הודו – מסע שמשנה השקפות",img:"https://images.pexels.com/photos/1007426/pexels-photo-1007426.jpeg",excerpt:"הודו היא לא יעד – היא מסע.",content:`<span class="article-tag-badge">מזרח</span><h1>הודו – מסע שמשנה</h1><div class="article-meta">✍️ Golden Tour | עודכן 2025</div><p>הודו היא יבשת שלמה בפני עצמה. צבע, קדושה, כאוס, ומוזיקה.</p><div class="article-cta"><h3>✈️ הודו עם Golden Tour</h3><button class="btn-gold" onclick="document.getElementById('articleModal').classList.remove('open');goPage('home');setTimeout(function(){scrollToId('contact')},100)">📞 צרו קשר</button></div>`}
+];
+
+var marqueeItems = ["✈️ טיסות זולות","🌍 יעדים ברחבי העולם","🏨 מלונות 5 כוכבים","🔥 דילים חמים","💬 שירות 24/7","🌴 חופשה טרופית","🏔️ הרפתקה מרגשת","🌹 חופשה רומנטית","🎒 טיולי תרמילאים","🛳️ קרוזים יוקרתיים"];
+
+var statsData = [
+  {num:"🌍",label:"מגוון יעדים בכל העולם"},{num:"24/7",label:"זמינות מלאה לכל שאלה"},
+  {num:"⭐",label:"שירות אישי ומסור"},{num:"✈️",label:"תכנון חופשות מותאם אישית"},
+  {num:"💰",label:"המחירים הטובים ביותר"},{num:"🏆",label:"ניסיון ומקצועיות"}
+];
+
+// ============================================================
+// =================== PAGE ROUTING ===========================
+// ============================================================
+var currentPage = 'home';
+
+function goPage(name) {
+  var pages = document.querySelectorAll('.page');
+  for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
+  document.getElementById('page-' + name).classList.add('active');
+  currentPage = name;
+  updateNavActive(name);
+  // Hide admin navbar on admin page
+  document.getElementById('navbar').style.display = (name === 'admin') ? 'none' : '';
+}
+
+function updateNavActive(name) {
+  var blogLink = document.getElementById('nav-blog');
+  var aboutLink = document.getElementById('nav-about');
+  if (blogLink) blogLink.classList.toggle('active', name === 'blog');
+  if (aboutLink) aboutLink.classList.toggle('active', name === 'about');
+}
+
+function scrollTop() { window.scrollTo(0,0); }
+function scrollToId(id) {
+  var el = document.getElementById(id);
+  if (el) { setTimeout(function(){el.scrollIntoView({behavior:'smooth'});}, 50); }
+}
+
+// ============================================================
+// ==================== NAVBAR ================================
+// ============================================================
+function toggleMenu() { document.getElementById('navLinks').classList.toggle('open'); }
+function closeMenu() { document.getElementById('navLinks').classList.remove('open'); }
+
+window.addEventListener('scroll', function(){
+  var nb = document.getElementById('navbar');
+  nb.style.background = window.scrollY > 50 ? 'rgba(10,10,10,0.98)' : 'rgba(10,10,10,0.95)';
+});
+
+// ============================================================
+// =================== HERO SLIDER ============================
+// ============================================================
+var currentSlide = 0;
+var slideInterval;
+
+function initSlider() {
+  var container = document.getElementById('sliderContainer');
+  var dots = document.getElementById('sliderDots');
+  container.innerHTML = ''; dots.innerHTML = '';
+  for (var i = 0; i < heroSlides.length; i++) {
+    var s = heroSlides[i];
+    var div = document.createElement('div');
+    div.className = 'slide' + (i===0?' active':'');
+    div.innerHTML = '<img src="'+s.img+'" alt="'+s.city+'" loading="lazy"><div class="slide-overlay"></div><div class="slide-text"><h1>'+s.city+'</h1><p>'+s.sub+'</p></div>';
+    container.appendChild(div);
+    var dot = document.createElement('div');
+    dot.className = 'slider-dot' + (i===0?' active':'');
+    dot.onclick = (function(idx){return function(){goToSlide(idx);};})(i);
+    dots.appendChild(dot);
+  }
+  clearInterval(slideInterval);
+  slideInterval = setInterval(function(){changeSlide(1);}, 5000);
+}
+
+function goToSlide(n) {
+  var slides = document.querySelectorAll('.slide');
+  var dots = document.querySelectorAll('.slider-dot');
+  slides[currentSlide].classList.remove('active'); dots[currentSlide].classList.remove('active');
+  currentSlide = (n + heroSlides.length) % heroSlides.length;
+  slides[currentSlide].classList.add('active'); dots[currentSlide].classList.add('active');
+}
+function changeSlide(dir) { goToSlide(currentSlide + dir); }
+
+// ============================================================
+// =================== MARQUEE ================================
+// ============================================================
+function initMarquee() {
+  var inner = document.getElementById('marqueeInner');
+  var html = '';
+  for (var i = 0; i < 4; i++) for (var j = 0; j < marqueeItems.length; j++) html += '<span>'+marqueeItems[j]+'</span>';
+  inner.innerHTML = html;
+}
+
+// ============================================================
+// =================== STATS ==================================
+// ============================================================
+function initStats() {
+  var grid = document.getElementById('statsGrid');
+  var html = '';
+  for (var i = 0; i < statsData.length; i++) html += '<div class="stat-card"><div class="stat-num">'+statsData[i].num+'</div><div class="stat-label">'+statsData[i].label+'</div></div>';
+  grid.innerHTML = html;
+}
+
+// ============================================================
+// =================== DESTINATIONS ===========================
+// ============================================================
+function initDestinations() {
+  var filterDiv = document.getElementById('destFilters');
+  var cats = ['הכל','אירופה','מזרח','מערב','מזרח תיכון'];
+  var html = '';
+  for (var i = 0; i < cats.length; i++) html += '<button class="filter-btn'+(i===0?' active':'')+ '" onclick="filterDest(\''+cats[i]+'\',this)">'+cats[i]+'</button>';
+  filterDiv.innerHTML = html;
+  renderDest('הכל');
+}
+
+function renderDest(cat) {
+  var grid = document.getElementById('destGrid');
+  var html = '';
+  for (var i = 0; i < destinations.length; i++) {
+    var d = destinations[i];
+    if (cat === 'הכל' || d.cat === cat) {
+      html += '<div class="dest-card" onclick="openDestModal('+d.id+')">';
+      html += '<div class="dest-img"><img src="'+d.img+'" alt="'+d.name+'" loading="lazy"></div>';
+      html += '<div class="dest-info"><span class="dest-tag">'+d.cat+'</span><h3>'+d.name+'</h3><p>'+d.desc.substring(0,80)+'...</p></div></div>';
+    }
+  }
+  grid.innerHTML = html;
+}
+
+function filterDest(cat, btn) {
+  var btns = document.querySelectorAll('#destFilters .filter-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  btn.classList.add('active'); renderDest(cat);
+}
+
+function openDestModal(id) {
+  var d = null;
+  for (var i = 0; i < destinations.length; i++) if (destinations[i].id===id){d=destinations[i];break;}
+  if (!d) return;
+  document.getElementById('modalImg').src = d.img;
+  document.getElementById('modalTitle').textContent = d.name;
+  document.getElementById('modalDesc').textContent = d.desc;
+  var ph = '<h4>📍 5 מקומות מומלצים לביקור</h4>';
+  for (var j = 0; j < d.places.length; j++) ph += '<div class="place-item"><strong>'+d.places[j].n+'</strong><span>'+d.places[j].t+'</span></div>';
+  document.getElementById('modalPlaces').innerHTML = ph;
+  document.getElementById('modalFood').textContent = d.food;
+  document.getElementById('modalTip').textContent = d.tip;
+  document.getElementById('modalBlogBtn').onclick = function(){openArticle(id);};
+  document.getElementById('destModal').classList.add('open');
+}
+
+function closeDestModal() { document.getElementById('destModal').classList.remove('open'); }
+
+function openArticle(destIdOrBlogId, isBlog) {
+  var d = null;
+  if (isBlog) {
+    for (var i = 0; i < blogPosts.length; i++) if (blogPosts[i].id===destIdOrBlogId){d=blogPosts[i];break;}
+    if (!d) return;
+    document.getElementById('articleHeroImg').src = d.img;
+    document.getElementById('articleContent').innerHTML = d.content;
+  } else {
+    for (var i = 0; i < destinations.length; i++) if (destinations[i].id===destIdOrBlogId){d=destinations[i];break;}
+    if (!d) return;
+    closeDestModal();
+    document.getElementById('articleHeroImg').src = d.img;
+    var ph2 = '';
+    for (var j = 0; j < d.places.length; j++) ph2 += '<div class="place-item" style="margin-bottom:.8rem"><strong>'+d.places[j].n+'</strong><p style="color:var(--text2);font-size:.9rem;margin-top:.3rem">'+d.places[j].t+'</p></div>';
+    var content = '<h1>מדריך מלא: '+d.name+'</h1>';
+    content += '<div class="article-meta">✍️ Golden Tour | מדריך נסיעות מקצועי</div>';
+    content += '<p>'+d.desc+'</p>';
+    content += '<h3>📍 5 מקומות שאסור לפספס</h3>'+ph2;
+    content += '<h3>🍽️ מה לאכול</h3><p>'+d.food+'</p>';
+    content += '<h3>💡 טיפ מקצועי</h3><div class="tip-box"><p>'+d.tip+'</p></div>';
+    content += '<div class="article-cta"><h3>🌍 מוכנים לנסוע ל'+d.name+'?</h3><p>צוות Golden Tour ישמח לבנות לכם חבילת חופשה מותאמת אישית.</p><button class="btn-gold" onclick="document.getElementById(\'articleModal\').classList.remove(\'open\');goPage(\'home\');setTimeout(function(){scrollToId(\'contact\')},100)">📞 צרו קשר ←</button></div>';
+    document.getElementById('articleContent').innerHTML = content;
+  }
+  document.getElementById('articleModal').classList.add('open');
+}
+
+// ============================================================
+// =================== DEALS ==================================
+// ============================================================
+function initDeals() {
+  var filterDiv = document.getElementById('dealFilters');
+  var cats = ['הכל','אירופה','מזרח','מערב','מזרח תיכון'];
+  var html = '';
+  for (var i = 0; i < cats.length; i++) html += '<button class="filter-btn'+(i===0?' active':'')+ '" onclick="filterDeals(\''+cats[i]+'\',this)">'+cats[i]+'</button>';
+  filterDiv.innerHTML = html;
+  renderDeals('הכל');
+}
+
+function renderDeals(cat) {
+  var grid = document.getElementById('dealsGrid');
+  var html = '';
+  for (var i = 0; i < deals.length; i++) {
+    var d = deals[i];
+    if (cat === 'הכל' || d.cat === cat) {
+      html += '<div class="deal-card" onclick="openDealModal('+d.id+')">';
+      html += '<div class="deal-img"><img src="'+d.img+'" alt="'+d.name+'" loading="lazy"><span class="deal-badge">'+d.badge+'</span></div>';
+      html += '<div class="deal-info"><h3>'+d.name+'</h3><p>'+d.desc.substring(0,70)+'...</p>';
+      html += '<div style="display:flex;align-items:center;gap:.7rem;margin-top:.5rem"><span class="deal-price">'+d.price+'</span><span class="deal-old">'+d.old+'</span></div></div></div>';
+    }
+  }
+  grid.innerHTML = html;
+}
+
+function filterDeals(cat, btn) {
+  var btns = document.querySelectorAll('#dealFilters .filter-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  btn.classList.add('active'); renderDeals(cat);
+}
+
+function openDealModal(id) {
+  var d = null;
+  for (var i = 0; i < deals.length; i++) if (deals[i].id===id){d=deals[i];break;}
+  if (!d) return;
+  document.getElementById('dealModalImg').src = d.img;
+  document.getElementById('dealModalTitle').textContent = d.name;
+  document.getElementById('dealModalDesc').textContent = d.desc;
+  document.getElementById('dealModalDetails').innerHTML = d.details;
+  document.getElementById('dealModalNote').textContent = d.note;
+  document.getElementById('dealModalPrice').textContent = d.price;
+  document.getElementById('dealModalOld').textContent = d.old;
+  document.getElementById('dealModal').classList.add('open');
+}
+
+// ============================================================
+// =================== BLOG ===================================
+// ============================================================
+var blogCurCat = 'הכל';
+
+function initBlogHome() {
+  var grid = document.getElementById('blogGridHome');
+  var html = '';
+  var show = blogPosts.slice(0,8);
+  for (var i = 0; i < show.length; i++) {
+    var b = show[i];
+    html += '<div class="blog-card" onclick="openArticle('+b.id+',true)">';
+    html += '<img src="'+b.img+'" alt="'+b.title+'" loading="lazy">';
+    html += '<div class="blog-card-body"><span class="blog-tag">'+b.cat+'</span><h3>'+b.title+'</h3><p>מדריך מעמיק שיעזור לכם לתכנן את הביקור המושלם.</p>';
+    html += '<div class="blog-card-footer"><span class="read-more">קראו עוד ←</span></div></div></div>';
+  }
+  grid.innerHTML = html;
+}
+
+function initBlogPage() {
+  var cats = ['הכל','אירופה','מזרח','מערב','מזרח תיכון'];
+  var fDiv = document.getElementById('blogFilters');
+  var html = '';
+  for (var i = 0; i < cats.length; i++) html += '<button class="filter-btn'+(cats[i]===blogCurCat?' active':'')+ '" onclick="filterBlog(\''+cats[i]+'\',this)">'+cats[i]+'</button>';
+  fDiv.innerHTML = html;
+  renderBlogFull();
+}
+
+function renderBlogFull() {
+  var grid = document.getElementById('blogGridFull');
+  var html = '';
+  for (var i = 0; i < blogPosts.length; i++) {
+    var b = blogPosts[i];
+    if (blogCurCat === 'הכל' || b.cat === blogCurCat) {
+      html += '<div class="blog-card-full" onclick="openArticle('+b.id+',true)">';
+      html += '<img src="'+b.img+'" alt="'+b.title+'" loading="lazy">';
+      html += '<div class="blog-card-body"><span class="blog-tag-badge">'+b.cat+'</span><h3>'+b.title+'</h3><p>'+b.excerpt+'</p>';
+      html += '<div class="blog-card-footer"><span class="read-more">קראו עוד ←</span></div></div></div>';
+    }
+  }
+  grid.innerHTML = html;
+}
+
+function filterBlog(cat, btn) {
+  blogCurCat = cat;
+  var btns = document.querySelectorAll('#blogFilters .filter-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  btn.classList.add('active'); renderBlogFull();
+}
+
+// ============================================================
+// =================== CONTACT ================================
+// ============================================================
+function sendContactForm() {
+  var name = document.getElementById('cName').value;
+  var phone = document.getElementById('cPhone').value;
+  var dest = document.getElementById('cDest').value;
+  var msg = document.getElementById('cMsg').value;
+  if (!name || !phone) { alert('נא למלא שם וטלפון'); return; }
+  var subject = encodeURIComponent('פנייה חדשה מ-' + name + ' | ' + dest);
+  var body = encodeURIComponent('שם: '+name+'\nטלפון: '+phone+'\nיעד: '+dest+'\nהודעה: '+msg);
+  window.location.href = 'mailto:mt-edid@ortarad.ort.org.il?subject='+subject+'&body='+body;
+}
+
+// ============================================================
+// =================== CHAT ===================================
+// ============================================================
+var chatOpen = false;
+var chatHistory = [];
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chatWindow').classList.toggle('open', chatOpen);
+}
+
+function sendChat() {
+  var input = document.getElementById('chatInput');
+  var msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  addChatMsg(msg, 'user');
+  chatHistory.push({role:'user',content:msg});
+  document.getElementById('chatTyping').style.display = 'block';
+  callClaude(msg);
+}
+
+function addChatMsg(text, who) {
+  var msgs = document.getElementById('chatMessages');
+  var div = document.createElement('div');
+  div.className = 'chat-msg ' + who;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function callClaude(userMsg) {
+  var messages = chatHistory.slice(-10);
+  fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model:'claude-sonnet-4-20250514',max_tokens:1000,
+      system:'אתה עוזר נסיעות מקצועי של Golden Tour, סוכנות נסיעות בראשון לציון. ענה תמיד בעברית, בגובה העיניים, עם המלצות מעשיות. מכיר את כל יעדי הסוכנות. מפנה לצור קשר: 054-2386216 (אדי) לסגירת עסקה.',
+      messages:messages
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    document.getElementById('chatTyping').style.display='none';
+    var reply=(data.content&&data.content[0])?data.content[0].text:'מצטער, לא הצלחתי לענות.';
+    addChatMsg(reply,'bot');
+    chatHistory.push({role:'assistant',content:reply});
+  })
+  .catch(function(){
+    document.getElementById('chatTyping').style.display='none';
+    addChatMsg('שגיאה בחיבור. פנו אלינו ישירות: 054-2386216','bot');
+  });
+}
+
+// ============================================================
+// =================== ACCESSIBILITY ==========================
+// ============================================================
+function toggleAcc() { document.getElementById('accPanel').classList.toggle('open'); }
+function changeFontSize(f) { var c=parseFloat(getComputedStyle(document.body).fontSize); document.body.style.fontSize=(c*f)+'px'; }
+function toggleContrast() { document.body.style.filter=document.body.style.filter?'':'contrast(1.5)'; }
+function highlightLinks() { var ls=document.querySelectorAll('a'); for(var i=0;i<ls.length;i++) ls[i].style.outline=ls[i].style.outline?'':'2px solid yellow'; }
+function resetAcc() { document.body.style.fontSize=''; document.body.style.filter=''; var ls=document.querySelectorAll('a'); for(var i=0;i<ls.length;i++) ls[i].style.outline=''; }
+
+// ============================================================
+// =================== POLICIES ===============================
+// ============================================================
+var policies = {
+  privacy:'<h2>מדיניות פרטיות</h2><h3>מידע שאנו אוספים</h3><p>אנו אוספים מידע שאתם מוסרים לנו ישירות: שם, טלפון, כתובת מייל ויעד מבוקש.</p><h3>שימוש במידע</h3><p>המידע משמש ליצירת קשר לצורך תכנון נסיעות ושיפור השירות בלבד.</p><h3>שמירת המידע</h3><p>אנו לא נעביר מידע לצדדים שלישיים ללא הסכמתכם.</p><button class="policy-close" onclick="document.getElementById(\'policyModal\').classList.remove(\'open\')">סגור</button>',
+  terms:'<h2>תנאי שימוש</h2><h3>שימוש באתר</h3><p>השימוש באתר Golden Tour מהווה הסכמה לתנאים אלו.</p><h3>מדיניות ביטולים</h3><p>ביטולי הזמנות יטופלו בהתאם לתקנות הגנת הצרכן.</p><h3>אחריות</h3><p>Golden Tour אינה אחראית לשינויים שחלו אצל ספקי שירות חיצוניים.</p><button class="policy-close" onclick="document.getElementById(\'policyModal\').classList.remove(\'open\')">סגור</button>',
+  accessibility:'<h2>הצהרת נגישות</h2><p>Golden Tour מחויבת לנגישות הדיגיטלית בהתאם לתקן ישראלי 5568.</p><ul><li>כפתור נגישות לשינוי גופן וניגודיות</li><li>ניווט מקלדת מלא</li><li>טקסטים חלופיים לתמונות</li></ul><p>יצירת קשר: mt-edid@ortarad.ort.org.il | 054-2386216</p><button class="policy-close" onclick="document.getElementById(\'policyModal\').classList.remove(\'open\')">סגור</button>',
+  cancel:'<h2>מדיניות ביטולים</h2><h3>ביטול עד 14 ימים לפני</h3><p>החזר מלא.</p><h3>ביטול 7–13 ימים לפני</h3><p>החזר 75%.</p><h3>ביטול 48 שעות עד 6 ימים לפני</h3><p>החזר 50%.</p><h3>ביטול פחות מ-48 שעות</h3><p>אין החזר.</p><button class="policy-close" onclick="document.getElementById(\'policyModal\').classList.remove(\'open\')">סגור</button>'
+};
+
+function openPolicy(type) {
+  document.getElementById('policyContent').innerHTML = policies[type] || '';
+  document.getElementById('policyModal').classList.add('open');
+}
+
+// ============================================================
+// =================== ADMIN ==================================
+// ============================================================
+var ADMIN_PASSWORD = 'goldentour2025';
+var adminDb = null;
+var adminConnected = false;
+
+function doAdminLogin() {
   var pw = document.getElementById('pwInput').value;
   if (pw === ADMIN_PASSWORD) {
     document.getElementById('loginWrap').style.display = 'none';
     document.getElementById('adminWrap').style.display = 'flex';
-    checkFirebase();
-    renderDestList();
-    renderDealList();
-    renderBlogList();
-    renderHeroList();
+    renderDestAdminList(); renderDealAdminList(); renderBlogAdminList(); renderHeroList();
+    checkAdminFirebase();
   } else {
     document.getElementById('loginErr').style.display = 'block';
   }
 }
 
-function doLogout() {
+function doAdminLogout() {
   document.getElementById('loginWrap').style.display = 'flex';
   document.getElementById('adminWrap').style.display = 'none';
   document.getElementById('pwInput').value = '';
   document.getElementById('loginErr').style.display = 'none';
 }
 
-// ====== PANELS ======
-function showPanel(name, btn) {
+function showAdminPanel(name, btn) {
   var panels = document.querySelectorAll('.admin-panel');
   for (var i = 0; i < panels.length; i++) panels[i].classList.remove('active');
   document.getElementById('panel-' + name).classList.add('active');
@@ -333,16 +1410,14 @@ function showPanel(name, btn) {
   if (btn) btn.classList.add('active');
 }
 
-// ====== STATUS ======
-function showStatus(msg, isError) {
-  var bar = document.getElementById('statusBar');
+function showAdminStatus(msg, isError) {
+  var bar = document.getElementById('adminStatusBar');
   bar.textContent = msg;
-  bar.className = 'status-bar' + (isError ? ' error' : '');
+  bar.className = 'status-bar' + (isError?' error':'');
   bar.style.display = 'block';
-  setTimeout(function(){ bar.style.display = 'none'; }, 3500);
+  setTimeout(function(){ bar.style.display='none'; }, 3500);
 }
 
-// ====== FIREBASE ======
 function connectFirebase() {
   var config = {
     apiKey: document.getElementById('fb-apiKey').value,
@@ -353,213 +1428,157 @@ function connectFirebase() {
     messagingSenderId: document.getElementById('fb-messagingSenderId').value,
     appId: document.getElementById('fb-appId').value
   };
-  if (!config.apiKey || !config.databaseURL) {
-    showStatus('❌ חסרים פרטי Firebase', true); return;
-  }
+  if (!config.apiKey || !config.databaseURL) { showAdminStatus('❌ חסרים פרטי Firebase', true); return; }
   try {
-    if (!firebase.apps.length) {
-      firebase.initializeApp(config);
-    }
-    db = firebase.database();
-    isConnected = true;
-    showStatus('✅ Firebase מחובר בהצלחה!');
+    if (!firebase.apps.length) firebase.initializeApp(config);
+    adminDb = firebase.database();
+    adminConnected = true;
+    showAdminStatus('✅ Firebase מחובר בהצלחה!');
     document.getElementById('fbStatus').innerHTML = '<span style="color:var(--green)">✅ מחובר ל-Firebase</span>';
-  } catch(e) {
-    showStatus('❌ שגיאת חיבור: ' + e.message, true);
-  }
+  } catch(e) { showAdminStatus('❌ שגיאת חיבור: '+e.message, true); }
 }
 
-function checkFirebase() {
+function checkAdminFirebase() {
   var fbDiv = document.getElementById('fbStatus');
-  if (isConnected) {
-    fbDiv.innerHTML = '<span style="color:var(--green)">✅ מחובר ל-Firebase</span>';
-  } else {
-    fbDiv.innerHTML = '<span style="color:#f59e0b">⚠️ Firebase לא מחובר – <button onclick="showPanel(\'firebase\',null)" style="background:none;border:none;color:var(--gold);cursor:pointer;text-decoration:underline">לחצו כאן להגדרה</button></span>';
-  }
+  fbDiv.innerHTML = adminConnected
+    ? '<span style="color:var(--green)">✅ מחובר ל-Firebase</span>'
+    : '<span style="color:#f59e0b">⚠️ Firebase לא מחובר – הגדירו בלשונית Firebase</span>';
 }
 
-// ====== SAVE TO FIREBASE ======
 function saveToDb(path, data, successMsg) {
-  if (!isConnected || !db) {
-    showStatus('⚠️ Firebase לא מחובר. השינויים לא יישמרו דרך הרשת.', true);
-    return;
-  }
-  db.ref(path).set(data)
-    .then(function(){ showStatus(successMsg || '✅ נשמר בהצלחה!'); })
-    .catch(function(e){ showStatus('❌ שגיאה: ' + e.message, true); });
+  if (!adminConnected || !adminDb) { showAdminStatus('⚠️ Firebase לא מחובר.', true); return; }
+  adminDb.ref(path).set(data).then(function(){ showAdminStatus(successMsg||'✅ נשמר!'); }).catch(function(e){ showAdminStatus('❌ '+e.message, true); });
 }
 
-// ====== SECTIONS ======
-function saveSection(name) {
-  var data = {};
-  if (name === 'siteinfo') {
-    data = {name: document.getElementById('si-name').value, slogan: document.getElementById('si-slogan').value, logo: document.getElementById('si-logo').value, marquee: document.getElementById('si-marquee').value};
-  } else if (name === 'contact') {
-    data = {name: document.getElementById('ct-name').value, phone: document.getElementById('ct-phone').value, email: document.getElementById('ct-email').value, address: document.getElementById('ct-address').value, hours1: document.getElementById('ct-hours1').value, hours2: document.getElementById('ct-hours2').value, wa: document.getElementById('ct-wa').value, fb: document.getElementById('ct-fb').value};
-  }
-  saveToDb('settings/' + name, data, '✅ ' + name + ' עודכן!');
-  showStatus('✅ נשמר! חברו Firebase כדי לשמור דרך הרשת.');
-}
+function adminSaveSection(name) { showAdminStatus('✅ נשמר! חברו Firebase לשמירה ברשת.'); }
 
-// ====== DESTINATIONS ======
-var localDests = [{id:1,name:"דובאי",cat:"מזרח תיכון"},{id:2,name:"מונטנגרו",cat:"אירופה"},{id:3,name:"תאילנד",cat:"מזרח"},{id:4,name:"ברצלונה",cat:"אירופה"},{id:5,name:"פריז",cat:"אירופה"},{id:6,name:"יפן",cat:"מזרח"},{id:7,name:"בודפשט",cat:"אירופה"},{id:8,name:"בוקרשט",cat:"אירופה"},{id:9,name:"באקו",cat:"מזרח תיכון"},{id:10,name:"פראג",cat:"אירופה"},{id:11,name:"רומא",cat:"אירופה"},{id:12,name:"אמסטרדם",cat:"אירופה"},{id:13,name:"ניו יורק",cat:"מערב"},{id:14,name:"מיאמי",cat:"מערב"},{id:15,name:"מרוקו",cat:"מזרח תיכון"},{id:16,name:"הודו",cat:"מזרח"},{id:17,name:"איסלנד",cat:"אירופה"},{id:18,name:"גרנדה",cat:"אירופה"},{id:19,name:"קייפ טאון",cat:"מערב"},{id:20,name:"קוסטה ריקה",cat:"מערב"},{id:21,name:"יוון",cat:"אירופה"}];
+// Admin data
+var localDests = destinations.map(function(d){return {id:d.id,name:d.name,cat:d.cat};});
+var localDeals = deals.map(function(d){return {id:d.id,name:d.name,cat:d.cat,price:d.price,badge:d.badge};});
+var localBlog = blogPosts.map(function(b){return {id:b.id,title:b.title,cat:b.cat};});
+var localHero = heroSlides.map(function(s){return {city:s.city,img:s.img};});
 
-function renderDestList() {
-  var list = document.getElementById('destList');
+function renderDestAdminList() {
+  var list = document.getElementById('destAdminList');
   var html = '';
   for (var i = 0; i < localDests.length; i++) {
     var d = localDests[i];
-    html += '<div class="list-item"><div class="list-item-info"><h4>' + d.name + '</h4><p><span class="badge">' + d.cat + '</span></p></div><div class="list-item-actions"><button class="edit-btn" onclick="editDest(' + i + ')">✏️ ערוך</button><button class="del-btn" onclick="delDest(' + i + ')">🗑️ מחק</button></div></div>';
+    html += '<div class="list-item"><div class="list-item-info"><h4>'+d.name+'</h4><p><span class="badge">'+d.cat+'</span></p></div><div class="list-item-actions"><button class="del-btn" onclick="delAdminDest('+i+')">🗑️ מחק</button></div></div>';
   }
   list.innerHTML = html;
 }
 
-function saveDest() {
+function adminSaveDest() {
   var name = document.getElementById('d-name').value;
-  if (!name) { showStatus('חסר שם יעד', true); return; }
-  var newD = {id: Date.now(), name: name, cat: document.getElementById('d-cat').value, img: document.getElementById('d-img').value, desc: document.getElementById('d-desc').value, food: document.getElementById('d-food').value, tip: document.getElementById('d-tip').value};
-  localDests.push(newD);
+  if (!name) { showAdminStatus('חסר שם יעד',true); return; }
+  localDests.push({id:Date.now(),name:name,cat:document.getElementById('d-cat').value});
   saveToDb('destinations', localDests, '✅ יעד נשמר!');
-  renderDestList();
+  renderDestAdminList();
   document.getElementById('d-name').value = '';
-  document.getElementById('d-img').value = '';
-  document.getElementById('d-desc').value = '';
-  showStatus('✅ יעד נוסף בהצלחה!');
+  showAdminStatus('✅ יעד נוסף!');
 }
 
-function editDest(i) {
-  var d = localDests[i];
-  document.getElementById('d-name').value = d.name;
-  document.getElementById('d-cat').value = d.cat;
-  document.getElementById('d-img').value = d.img || '';
-  document.getElementById('d-desc').value = d.desc || '';
-  document.getElementById('d-food').value = d.food || '';
-  document.getElementById('d-tip').value = d.tip || '';
-  window.scrollTo(0,0);
-  showStatus('✏️ ערכו ולחצו שמור');
+function delAdminDest(i) {
+  if (confirm('למחוק?')) { localDests.splice(i,1); renderDestAdminList(); showAdminStatus('✅ נמחק'); }
 }
 
-function delDest(i) {
-  if (confirm('למחוק את ' + localDests[i].name + '?')) {
-    localDests.splice(i,1);
-    renderDestList();
-    saveToDb('destinations', localDests, '✅ יעד נמחק');
-    showStatus('✅ יעד נמחק');
-  }
-}
-
-function addDest() {
-  document.getElementById('d-name').value = '';
-  showStatus('מלאו את הפרטים ולחצו שמור');
-}
-
-// ====== DEALS ======
-var localDeals = [{id:1,name:"דובאי – יוקרה בצנצנת",cat:"מזרח תיכון",price:"₪3,490",badge:"🔥 חם"},{id:2,name:"פריז – חופשה רומנטית",cat:"אירופה",price:"₪2,890",badge:"♥ זוגות"},{id:3,name:"תאילנד – חופשה טרופית",cat:"מזרח",price:"₪4,290",badge:"🌴 טרופי"},{id:4,name:"ברצלונה – ספרדית בשמש",cat:"אירופה",price:"₪2,490",badge:"🌞 קיץ"},{id:5,name:"יפן – מסע ייחודי",cat:"מזרח",price:"₪6,990",badge:"🌸 פריחה"},{id:6,name:"בודפשט – אירופה מרכזית",cat:"אירופה",price:"₪1,990",badge:"💎 ערך"},{id:7,name:"מרוקו – חופשת שחרית",cat:"מזרח תיכון",price:"₪3,290",badge:"🐪 מדבר"},{id:8,name:"יוון – אסקפיזם ים",cat:"אירופה",price:"₪2,790",badge:"🏝️ אי"},{id:9,name:"ניו יורק – עיר שלא ישנה",cat:"מערב",price:"₪5,490",badge:"🗽 אייקון"},{id:10,name:"קייפ טאון – אפריקה אחרת",cat:"מערב",price:"₪4,890",badge:"🏔️ הר"}];
-
-function renderDealList() {
-  var list = document.getElementById('dealList');
+function renderDealAdminList() {
+  var list = document.getElementById('dealAdminList');
   var html = '';
   for (var i = 0; i < localDeals.length; i++) {
     var d = localDeals[i];
-    html += '<div class="list-item"><div class="list-item-info"><h4>' + d.name + '</h4><p><span class="badge">' + d.cat + '</span><span style="color:var(--gold)">' + d.price + '</span></p></div><div class="list-item-actions"><button class="edit-btn" onclick="editDeal(' + i + ')">✏️ ערוך</button><button class="del-btn" onclick="delDeal(' + i + ')">🗑️ מחק</button></div></div>';
+    html += '<div class="list-item"><div class="list-item-info"><h4>'+d.name+'</h4><p><span class="badge">'+d.cat+'</span> <span style="color:var(--gold)">'+d.price+'</span></p></div><div class="list-item-actions"><button class="del-btn" onclick="delAdminDeal('+i+')">🗑️</button></div></div>';
   }
   list.innerHTML = html;
 }
 
-function saveDeal() {
+function adminSaveDeal() {
   var name = document.getElementById('dl-name').value;
-  if (!name) { showStatus('חסר שם דיל', true); return; }
-  var nd = {id: Date.now(), name: name, cat: document.getElementById('dl-cat').value, price: document.getElementById('dl-price').value, old: document.getElementById('dl-old').value, badge: document.getElementById('dl-badge').value, img: document.getElementById('dl-img').value, desc: document.getElementById('dl-desc').value, note: document.getElementById('dl-note').value};
-  localDeals.push(nd);
-  saveToDb('deals', localDeals, '✅ דיל נשמר!');
-  renderDealList();
-  showStatus('✅ דיל נוסף בהצלחה!');
+  if (!name) { showAdminStatus('חסר שם',true); return; }
+  localDeals.push({id:Date.now(),name:name,cat:document.getElementById('dl-cat').value,price:document.getElementById('dl-price').value,badge:document.getElementById('dl-badge').value});
+  saveToDb('deals',localDeals,'✅ דיל נשמר!');
+  renderDealAdminList();
+  showAdminStatus('✅ דיל נוסף!');
 }
 
-function editDeal(i) {
-  var d = localDeals[i];
-  document.getElementById('dl-name').value = d.name;
-  document.getElementById('dl-price').value = d.price;
-  document.getElementById('dl-old').value = d.old || '';
-  document.getElementById('dl-badge').value = d.badge || '';
-  document.getElementById('dl-img').value = d.img || '';
-  document.getElementById('dl-desc').value = d.desc || '';
-  document.getElementById('dl-note').value = d.note || '';
-  window.scrollTo(0,0);
+function delAdminDeal(i) {
+  if (confirm('למחוק?')) { localDeals.splice(i,1); renderDealAdminList(); showAdminStatus('✅ נמחק'); }
 }
 
-function delDeal(i) {
-  if (confirm('למחוק דיל?')) {
-    localDeals.splice(i,1);
-    renderDealList();
-    saveToDb('deals', localDeals);
-    showStatus('✅ דיל נמחק');
-  }
-}
-
-// ====== BLOG ======
-var localBlog = [{id:1,title:"ברצלונה – המדריך המלא",cat:"אירופה"},{id:2,title:"פריז – סיטי טריפ מושלם",cat:"אירופה"},{id:3,title:"בודפשט – יהלום נסתר",cat:"אירופה"},{id:4,title:"פראג – עיר הקסמים",cat:"אירופה"},{id:5,title:"בוקרשט – הפריז של המזרח",cat:"אירופה"},{id:6,title:"מונטנגרו – טבע פרוע",cat:"אירופה"},{id:7,title:"רומא – 5 ימים בנצח",cat:"אירופה"},{id:8,title:"אמסטרדם – תעלות ואופניים",cat:"אירופה"},{id:9,title:"תאילנד – החופשה הטרופית",cat:"מזרח"},{id:10,title:"יפן – מסע בין עתיד ועבר",cat:"מזרח"},{id:11,title:"ניו יורק – עיר שלא ישנה",cat:"מערב"},{id:12,title:"מיאמי – שמש וגלים",cat:"מערב"},{id:13,title:"באקו – האלמוגים של אסיה",cat:"מזרח תיכון"},{id:14,title:"דובאי – המדריך המושלם",cat:"מזרח תיכון"},{id:15,title:"מרוקו – מסע חושים",cat:"מזרח תיכון"},{id:16,title:"הודו – מסע שמשנה",cat:"מזרח"}];
-
-function renderBlogList() {
-  var list = document.getElementById('blogList');
+function renderBlogAdminList() {
+  var list = document.getElementById('blogAdminList');
   var html = '';
   for (var i = 0; i < localBlog.length; i++) {
     var b = localBlog[i];
-    html += '<div class="list-item"><div class="list-item-info"><h4>' + b.title + '</h4><p><span class="badge">' + b.cat + '</span></p></div><div class="list-item-actions"><button class="edit-btn">✏️ ערוך</button><button class="del-btn" onclick="delBlog(' + i + ')">🗑️ מחק</button></div></div>';
+    html += '<div class="list-item"><div class="list-item-info"><h4>'+b.title+'</h4><p><span class="badge">'+b.cat+'</span></p></div><div class="list-item-actions"><button class="del-btn" onclick="delAdminBlog('+i+')">🗑️</button></div></div>';
   }
   list.innerHTML = html;
 }
 
-function saveBlog() {
+function adminSaveBlog() {
   var title = document.getElementById('bl-title').value;
-  if (!title) { showStatus('חסרת כותרת', true); return; }
-  var nb = {id: Date.now(), title: title, cat: document.getElementById('bl-cat').value, img: document.getElementById('bl-img').value, excerpt: document.getElementById('bl-excerpt').value, content: document.getElementById('bl-content').value};
-  localBlog.push(nb);
-  saveToDb('blog', localBlog, '✅ כתבה פורסמה!');
-  renderBlogList();
-  showStatus('✅ כתבה נוספה!');
+  if (!title) { showAdminStatus('חסרת כותרת',true); return; }
+  localBlog.push({id:Date.now(),title:title,cat:document.getElementById('bl-cat').value});
+  saveToDb('blog',localBlog,'✅ כתבה פורסמה!');
+  renderBlogAdminList();
+  showAdminStatus('✅ כתבה נוספה!');
 }
 
-function delBlog(i) {
-  if (confirm('למחוק כתבה?')) {
-    localBlog.splice(i,1);
-    renderBlogList();
-    saveToDb('blog', localBlog);
-    showStatus('✅ כתבה נמחקה');
-  }
+function delAdminBlog(i) {
+  if (confirm('למחוק?')) { localBlog.splice(i,1); renderBlogAdminList(); showAdminStatus('✅ נמחקה'); }
 }
-
-// ====== HERO ======
-var localHero = [{city:"דובאי",img:"pexels..."},{city:"מונטנגרו",img:"pexels..."},{city:"תאילנד",img:"pexels..."},{city:"ברצלונה",img:"pexels..."},{city:"פריז",img:"pexels..."},{city:"יפן",img:"pexels..."},{city:"בודפשט",img:"pexels..."},{city:"בוקרשט",img:"pexels..."},{city:"באקו",img:"pexels..."},{city:"פראג",img:"pexels..."}];
 
 function renderHeroList() {
   var list = document.getElementById('heroList');
   var html = '';
   for (var i = 0; i < localHero.length; i++) {
-    html += '<div class="card" style="margin-bottom:1rem"><h3>שקף ' + (i+1) + ' – ' + localHero[i].city + '</h3><div class="form-row"><div class="form-group"><label>שם העיר</label><input value="' + localHero[i].city + '" onchange="localHero[' + i + '].city=this.value"></div><div class="form-group"><label>קישור תמונה</label><input value="' + localHero[i].img + '" onchange="localHero[' + i + '].img=this.value"></div></div><button class="save-btn" onclick="saveHero()">💾 שמור</button></div>';
+    html += '<div class="card" style="margin-bottom:1rem"><h3>שקף '+(i+1)+' – '+localHero[i].city+'</h3><div class="form-row"><div class="form-group"><label>שם העיר</label><input value="'+localHero[i].city+'" onchange="localHero['+i+'].city=this.value"></div><div class="form-group"><label>קישור תמונה</label><input value="'+localHero[i].img+'" onchange="localHero['+i+'].img=this.value"></div></div><button class="save-btn" onclick="saveHero()">💾 שמור</button></div>';
   }
   list.innerHTML = html;
 }
 
-function addHeroSlide() {
-  localHero.push({city:"עיר חדשה", img:"https://images.pexels.com/..."});
-  renderHeroList();
-}
+function addHeroSlide() { localHero.push({city:"עיר חדשה",img:""}); renderHeroList(); }
+function saveHero() { saveToDb('hero',localHero,'✅ Slider עודכן!'); showAdminStatus('✅ שקפים עודכנו!'); }
 
-function saveHero() {
-  saveToDb('hero', localHero, '✅ Slider עודכן!');
-  showStatus('✅ Hero Slider עודכן!');
-}
-
-// Preview image
+// Image preview
 document.addEventListener('input', function(e) {
   if (e.target.id === 'd-img') {
     var prev = document.getElementById('d-img-preview');
-    if (e.target.value) { prev.src = e.target.value; prev.style.display = 'block'; }
-    else { prev.style.display = 'none'; }
+    if (e.target.value) { prev.src=e.target.value; prev.style.display='block'; }
+    else { prev.style.display='none'; }
   }
+});
+
+// ============================================================
+// =================== MODAL CLOSE EVENTS =====================
+// ============================================================
+document.getElementById('destModal').addEventListener('click', function(e){if(e.target===this)closeDestModal();});
+document.getElementById('dealModal').addEventListener('click', function(e){if(e.target===this)this.classList.remove('open');});
+document.getElementById('policyModal').addEventListener('click', function(e){if(e.target===this)this.classList.remove('open');});
+
+// ============================================================
+// =================== INIT ==================================
+// ============================================================
+function init() {
+  initSlider();
+  initMarquee();
+  initStats();
+  initDestinations();
+  initDeals();
+  initBlogHome();
+  initBlogPage();
+}
+
+init();
+
+// Secret admin access: click logo 5x fast
+var logoClicks = 0, logoTimer;
+document.querySelector('.logo').addEventListener('click', function(){
+  logoClicks++;
+  clearTimeout(logoTimer);
+  logoTimer = setTimeout(function(){logoClicks=0;}, 1500);
+  if (logoClicks >= 5) { logoClicks=0; goPage('admin'); scrollTop(); }
 });
 </script>
 </body>
 </html>
-
